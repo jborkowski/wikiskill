@@ -1,14 +1,14 @@
 ---
 name: to-spec
-description: "Turn the current conversation into a portable spec and publish it via the issue-tracker skill for whatever repo you are in: no interview, just synthesis of what you've already discussed."
+description: "Turn the current conversation into a portable spec and publish it as a GitHub Issue via issue-tracker: draft in chat only — never write local design/spec markdown."
 disable-model-invocation: true
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # To Spec
 
-Skill version: `0.3.0`
+Skill version: `0.4.0`
 
 Generic skill for **any** repository. It synthesizes a spec from the current conversation and codebase understanding. Do NOT interview the user; if something critical is missing, record it under **Further Notes** (or stop with a short “blocked on …” list).
 
@@ -35,10 +35,12 @@ Then ensure that install's `triage-labels.md` matches the **target** GitHub repo
 
    Present the seam list briefly and **check with the user that these seams match their expectations** before writing Implementation Decisions / Testing Decisions or publishing.
 
-3. Write the spec using the template below. **Publish gate:** do not publish until all six core sections are present and non-empty:
+3. **Draft the spec in the chat reply only** (use the template below). **Do not write the spec to the working tree** — no `docs/design/**`, `docs/**/*spec*.md`, `.scratch/**`, or similar. Design belongs in GitHub Issues via `issue-tracker`, not on disk.
+
+   **Publish gate:** do not publish until all six core sections are present and non-empty:
    Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope.
 
-4. Publish only with **`issue-tracker`**: hard publish gate, create only when the user authorized publication, apply the **Repo label** for role `ready-for-agent` from that install's `triage-labels.md`, and name related-issue candidates (or an explicit none-found statement) in the issue body.
+4. Publish only with **`issue-tracker`**: hard publish gate, create only when the user authorized publication, put the full template in the **issue body**, apply the **Repo label** for role `ready-for-agent` from that install's `triage-labels.md`, and name related-issue candidates (or an explicit none-found statement) in the issue body.
 
 <spec-template>
 
@@ -98,6 +100,7 @@ Any further notes about the feature. Put unresolved context gaps here instead of
 
 ## Changelog
 
+- `0.4.0` — Specs stay in chat / GitHub Issues only; never write local design/spec markdown.
 - `0.3.0` — Fully generic: role→label via issue-tracker; no project-specific setup commands or paths.
 - `0.2.0` — Publish gate (6/6 sections); seams checkpoint; issue-tracker-only publish.
 - `0.1.0` — Initial `to-spec` skill; wired to sibling issue-tracker.

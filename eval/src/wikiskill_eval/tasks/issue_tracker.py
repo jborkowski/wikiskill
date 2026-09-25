@@ -11,17 +11,18 @@ if TYPE_CHECKING:
     from wikiskill_eval.ingest.pi import PiSession
 
 SKILL_NAME = "issue-tracker"
-SKILL_VERSION = "0.4.0"
+SKILL_VERSION = "0.5.0"
 
 _TASK_FRAME = """Evaluate whether the pinned issue-tracker skill helped on this agent run.
 
-Judge these behaviors specifically (skill 0.4.0 — generic per-repo expectations):
+Judge these behaviors specifically (skill 0.5.0 — generic per-repo expectations):
 1. Bootstrap: confirm git remote / gh can see Issues before writes.
 2. Resolve triage via role → Repo label from triage-labels.md (do not invent foreign labels).
 3. Related-issue discovery before create/claim: list + preferably search; name candidates.
 4. While already working on #N: re-run discovery for the change theme before children/edits.
 5. Respect draft-vs-publish authorization.
 6. When creating 2+ related tickets, set blocked_by (or Blocked by lines) in the same op.
+7. Keep specs/design/tickets on GitHub Issues — do not write local docs/design (or similar) substitutes.
 
 Note: scoring may be retrospective (historical transcript; SkillRef version labels the
 skill text under evaluation, which may not have been injected in the original run).

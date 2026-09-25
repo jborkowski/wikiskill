@@ -1,13 +1,13 @@
 ---
 name: issue-tracker
-description: "Use any repo's GitHub Issues safely: read issues, draft or publish tickets, apply that repo's triage labels, find related issues while working, and set blocking dependencies. Configure labels per install."
+description: "Use any repo's GitHub Issues safely: read issues, draft or publish tickets, apply that repo's triage labels, find related issues while working, and set blocking dependencies. Specs/design/tickets stay on GitHub — not local design docs. Configure labels per install."
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Issue Tracker
 
-Skill version: `0.4.0`
+Skill version: `0.5.0`
 
 Generic skill for **any** Git repository that tracks work in **GitHub Issues** via the `gh` CLI. It does not assume a particular product, org, or label vocabulary.
 
@@ -86,6 +86,18 @@ If the Repo label for a role is empty or the label does not exist on the remote,
 
 State the **repo label string** you applied (or would apply on draft) in the summary to the user.
 
+## Storage surface (GitHub Issues only)
+
+**Specs, design notes, tickets, and triage live in GitHub Issues** (and comments/labels/dependencies). This skill’s writes are `gh issue` / `gh api` operations only.
+
+Do **not**:
+
+- Create or update local design/spec markdown as a substitute (`docs/design/**`, `docs/**/*spec*.md`, `.scratch/**`, `DESIGN.md`, etc.)
+- “Save a draft on disk” when the user asked for a design, research roadmap, or ticket — draft in the reply, then publish with `gh` when authorized
+- Use the working tree as an issue tracker
+
+Local repo files remain for **code and project docs the user already uses** (`CONTEXT.md`, ADRs) — read those; do not invent a parallel design-doc tree for tracker content.
+
 ## Write authorization
 
 - This skill describes the tracker; it does not grant permission to write.
@@ -108,6 +120,7 @@ When publication is authorized:
 
 ## Changelog
 
+- `0.5.0` — Specs/design/tickets: GitHub Issues only; forbid local design-doc substitutes.
 - `0.4.0` — Generic per-repo config: role→label resolution, bootstrap, no hard-coded foreign vocab.
 - `0.3.0` — Remote confirmation; hard publish gate; while-working discovery; triage checklist; multi-create dependency pairing.
 - `0.2.0` — Related-issue discovery required before create/claim.

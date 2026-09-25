@@ -1,14 +1,14 @@
 ---
 name: to-tickets
-description: "Break a plan, spec, or the current conversation into tracer-bullet tickets with blocking edges, published via the issue-tracker skill (or local scratch files when no remote tracker)."
+description: "Break a plan, spec, or the current conversation into tracer-bullet tickets with blocking edges, published as GitHub Issues via the issue-tracker skill (local scratch only if the user explicitly asks for files)."
 disable-model-invocation: true
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # To Tickets
 
-Skill version: `0.1.0`
+Skill version: `0.2.0`
 
 Break a plan, spec, or conversation into a set of **tickets**: tracer-bullet vertical slices, each declaring the tickets that **block** it.
 
@@ -65,7 +65,9 @@ Iterate until the user approves the breakdown.
 
 ### 5. Publish the tickets
 
-Publish the approved tickets. Prefer a **real tracker** when the current repo uses GitHub Issues (`issue-tracker` bootstrap succeeds). Use **local files** only when the user asks for files, or Issues/`gh` are unavailable.
+Publish the approved tickets as **GitHub Issues** via **`issue-tracker`** (default). Preview the breakdown in the chat reply; do not write ticket markdown under `docs/` or `docs/design/`.
+
+If Issues/`gh` are unavailable, **stop and tell the user** — do not silently fall back to disk. Use **local files** only when the user **explicitly** asks for scratch files.
 
 #### Real issue tracker (default)
 
@@ -73,9 +75,9 @@ Publish one issue per ticket in dependency order (blockers first) so each ticket
 
 Do NOT close or modify any parent issue unless the user separately authorizes that.
 
-#### Local files (fallback)
+#### Local files (explicit opt-in only)
 
-Write one file per ticket under `.scratch/<slug>/issues/<nn>-<slug>.md`, numbered from `01` in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below: one ticket per file, never a single combined file.
+Only if the user asked for files: write one file per ticket under `.scratch/<slug>/issues/<nn>-<slug>.md`, numbered from `01` in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below: one ticket per file, never a single combined file. Never use `docs/design/` for tickets.
 
 Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
 
@@ -119,4 +121,5 @@ In either form, avoid specific file paths or code snippets: they go stale fast. 
 
 ## Changelog
 
+- `0.2.0` — GitHub Issues default; local scratch only on explicit user request; no `docs/design/` tickets.
 - `0.1.0` — Initial `to-tickets` skill; wired to jborkowski/wikiskill `issue-tracker`.

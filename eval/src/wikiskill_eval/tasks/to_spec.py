@@ -12,18 +12,19 @@ if TYPE_CHECKING:
     from wikiskill_eval.ingest.pi import PiSession
 
 SKILL_NAME = "to-spec"
-SKILL_VERSION = "0.3.0"
+SKILL_VERSION = "0.4.0"
 
 _TASK_FRAME = """Evaluate whether the pinned to-spec skill helped on this agent run.
 
-Judge these behaviors specifically (skill 0.3.0 — generic per-repo expectations):
+Judge these behaviors specifically (skill 0.4.0 — generic per-repo expectations):
 1. No interview: synthesize from conversation; put gaps in Further Notes — do not grill.
 2. Explore the current repo / domain docs when present; no hard-coded project paths.
 3. Seams checkpoint: propose test seams and get user confirmation before Implementation/Testing Decisions or publish.
 4. Spec body covers all six core template sections before publish.
 5. Publish only via sibling issue-tracker using role→Repo label (ready-for-agent role);
    install from jborkowski/wikiskill if missing — do not invent another tracker setup.
-6. Do not include brittle file paths/snippets in Implementation Decisions (prototype exception only).
+6. Do not write local design/spec markdown (docs/design, etc.); draft in chat / issue body only.
+7. Do not include brittle file paths/snippets in Implementation Decisions (prototype exception only).
 
 Note: scoring may be retrospective (historical transcript; SkillRef version labels the
 skill text under evaluation, which may not have been injected in the original run).
