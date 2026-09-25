@@ -20,7 +20,7 @@ These skills are written to be **generic**: they work in any GitHub-backed clone
 | `issue-tracker` | Safe GitHub Issues read/write, related-issue discovery, triage **roles** → repo labels |
 | `to-spec` | Synthesize a conversation into a spec and publish via `issue-tracker` |
 | `to-tickets` | Break a plan/spec into tracer-bullet tickets with blockers; publish via `issue-tracker` (scratch files only if asked) |
-| `implement` | Implement a spec or ticket slice (TDD when possible, review, commit) |
+| `implement` | Implement one GH ticket/slice at a time (tests, review, gates, commit); no local ticket mirrors |
 | `skill-evolve` | Score session runs, write evaluation retrospectives, distill lessons, patch skills, dogfood |
 
 ## Adapt to your repo (required for real use)
