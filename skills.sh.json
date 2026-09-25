@@ -1,0 +1,21 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Tracker",
+      "description": "GitHub Issues read/write for any repo.",
+      "skills": ["issue-tracker"]
+    },
+    {
+      "title": "Spec to ship",
+      "description": "Synthesize a spec, break into tickets, implement.",
+      "skills": ["to-spec", "to-tickets", "implement"]
+    },
+    {
+      "title": "Evolve",
+      "description": "Evaluate runs, distill lessons, patch and dogfood skills.",
+      "skills": ["skill-evolve"]
+    }
+  ]
+}

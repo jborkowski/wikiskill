@@ -33,6 +33,14 @@ After `npx skills add jborkowski/wikiskill --skill issue-tracker` (project or gl
 
 Typical flow: **`to-spec`** → **`to-tickets`** → **`implement`** (frontier tickets), with **`issue-tracker`** for all publish/fetch. Use **`skill-evolve`** to evaluate and improve any of those skills from agent transcripts.
 
+Install the whole pack:
+
+```bash
+npx skills add jborkowski/wikiskill --all
+# or
+npx skills add jborkowski/wikiskill --skill '*'
+```
+
 `to-spec` / `to-tickets` / `implement` never assume a particular codebase layout; they explore whatever repo the agent is in.
 
 ## Requirements

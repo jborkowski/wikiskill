@@ -6,27 +6,37 @@ Installable via [skills.sh](https://www.skills.sh) / the [`skills`](https://gith
 
 ## Install
 
+The CLI discovers every `skills/<name>/SKILL.md` on the **default branch**. Install all of them in one shot:
+
 ```bash
-# List available skills
-npx skills add https://github.com/jborkowski/wikiskill --list
+# All skills → all agents (non-interactive)
+npx skills add jborkowski/wikiskill --all
 
-# Install one skill
-npx skills add https://github.com/jborkowski/wikiskill --skill issue-tracker
-npx skills add https://github.com/jborkowski/wikiskill --skill to-spec
-npx skills add https://github.com/jborkowski/wikiskill --skill to-tickets
-npx skills add https://github.com/jborkowski/wikiskill --skill implement
-npx skills add https://github.com/jborkowski/wikiskill --skill skill-evolve
-
-# Or GitHub shorthand
-npx skills add jborkowski/wikiskill --skill issue-tracker
+# Or: all skills, then pick agents interactively
+npx skills add jborkowski/wikiskill --skill '*'
 ```
 
-From a local checkout:
+List what GitHub currently exposes:
+
+```bash
+npx skills add jborkowski/wikiskill --list
+```
+
+Install one or several by name:
+
+```bash
+npx skills add jborkowski/wikiskill --skill issue-tracker
+npx skills add jborkowski/wikiskill --skill to-spec to-tickets implement skill-evolve
+```
+
+From a local checkout (includes unpushed skills):
 
 ```bash
 npx skills add . --list
-npx skills add . --skill issue-tracker
+npx skills add . --skill '*'
 ```
+
+`skills.sh.json` only controls **groupings on the skills.sh repo page** — it does not change CLI install. Optional: create a [skills.sh pack](https://www.skills.sh/docs/packs) if you want a single `https://skills.sh/p/<id>` URL that always installs the whole set.
 
 ## Repository layout
 
