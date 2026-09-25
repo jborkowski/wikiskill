@@ -20,7 +20,7 @@ uv run eval commit-msg "feat(eval): add CLM commit-msg density check"
 | Command | Purpose |
 |---|---|
 | `eval run` | Smoke: invoice System One → `department=billing` |
-| `eval commit-msg` | Advisory/fun: CLM scores format + density (exit 0; `SKIP` if CLM unavailable) |
+| `eval commit-msg` | **Hard gate:** CLM rejects slop / weak messages (`PASS`/`FAIL`, exit 1 on fail; fails closed if CLM down) |
 
 Both start MLX emb + `clm-serve` as subprocesses, then tear down.
 

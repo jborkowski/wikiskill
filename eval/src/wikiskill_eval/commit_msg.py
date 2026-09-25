@@ -1,6 +1,6 @@
-"""Optional pre-commit tool: CLM-only commit message check (no regex).
+"""Pre-commit CLM judge for commit messages (dense vs slop; Conventional Commits).
 
-Judges Conventional Commits style (feat/fix/chore/…) and density via System One.
+No regex. System One scores format + density; ``verify_commit_msg`` is a hard gate.
 """
 
 from __future__ import annotations
@@ -10,9 +10,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from wikiskill_eval.client import EvalClient
 
-COMMIT_MSG_RUBRIC_VERSION = "commit-msg-v0.7"
+COMMIT_MSG_RUBRIC_VERSION = "commit-msg-v0.8"
 
-FORMAT_PASS_MIN = 0.55
+FORMAT_PASS_MIN = 0.5
 DENSE_LABEL = "dense_informative"
 MIN_QUALITY_PROB = 0.5
 MIN_NOT_SLOP = 0.5
@@ -35,22 +35,29 @@ def build_commit_msg_questions() -> dict[str, Any]:
             },
         ),
         "quality": Choice(
-            instructions="How informative is this commit message for a code reviewer?",
+            instructions=(
+                "How informative is this commit message for a code reviewer? "
+                "Reject vague AI/generic slop."
+            ),
             criteria={
-                "dense_informative": "Concrete and useful",
-                "adequate": "Ok but thin",
-                "slop": "Vague filler",
+                "dense_informative": (
+                    "Concrete subject: names the change and why; useful to a reviewer."
+                ),
+                "adequate": "Understandable but thin; missing concrete why/what.",
+                "slop": (
+                    "Vague filler (fix stuff, updates, improve code, wip, empty AI phrasing)."
+                ),
             },
         ),
         "not_slop": Noul(
-            instructions="Is the wording informative, not vague slop?",
-            criteria={"true": "Informative", "false": "Vague slop"},
+            instructions="Is the wording informative and specific, not vague AI/generic slop?",
+            criteria={"true": "Informative and specific", "false": "Vague slop"},
         ),
     }
 
 
 def verify_commit_msg(response: object) -> None:
-    """Predicate: CLM format + dense_informative + not_slop."""
+    """Hard gate: conventional-ish format + dense_informative + not_slop."""
     answers = getattr(response, "answers", None)
     if not isinstance(answers, dict):
         raise AssertionError("missing answers")
@@ -69,6 +76,8 @@ def verify_commit_msg(response: object) -> None:
 
     if format_noul < FORMAT_PASS_MIN:
         raise AssertionError(f"format(conventional)={format_noul} < {FORMAT_PASS_MIN}")
+    if choice == "slop":
+        raise AssertionError(f"quality=slop probs={qprobs}")
     if choice != DENSE_LABEL:
         raise AssertionError(f"quality={choice!r} (want {DENSE_LABEL}) probs={qprobs}")
     if qprob < MIN_QUALITY_PROB:

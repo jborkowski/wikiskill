@@ -2,7 +2,7 @@
 
 Commands:
   run          — smoke: invoice System One (department=billing)
-  commit-msg   — optional: score a commit message (dense vs slop) before commit
+  commit-msg   — hard gate: CLM judges commit message (reject slop / weak density)
 """
 
 from __future__ import annotations
@@ -82,25 +82,28 @@ def _print_commit_scores(response: object, *, stream: object = sys.stdout) -> No
 
 
 def cmd_commit_msg(message: str) -> int:
-    """Advisory CLM scores for fun — never blocks; SKIP if runtime unavailable."""
+    """Hard gate: PASS/FAIL. Fails closed if CLM cannot start."""
     text = message.strip()
     if not text:
-        print("SKIP: empty commit message")
-        return 0
+        print("FAIL: empty commit message", file=sys.stderr)
+        return 1
 
     try:
         with EvalRuntime() as runtime:
             client = _client(runtime)
             response = evaluate_commit_msg(client, text)
     except (ValueError, RuntimeError, TimeoutError, OSError) as e:
-        print(f"SKIP: commit-msg CLM unavailable ({e})")
-        return 0
+        print(f"FAIL: commit-msg CLM unavailable ({e})", file=sys.stderr)
+        return 1
 
     try:
         verify_commit_msg(response)
-        print("FUN ok: ", end="")
     except AssertionError as e:
-        print(f"FUN weak ({e}): ", end="")
+        print(f"FAIL: {e}", file=sys.stderr)
+        _print_commit_scores(response, stream=sys.stderr)
+        return 1
+
+    print("PASS: ", end="")
     _print_commit_scores(response)
     return 0
 
@@ -110,7 +113,7 @@ def main() -> None:
     usage = (
         "usage: uv run eval run | uv run eval commit-msg <message|->\n"
         "  run         hard smoke (invoice → billing)\n"
-        "  commit-msg  advisory CLM scores (exit 0 always; SKIP if unavailable)"
+        "  commit-msg  hard gate: reject slop / weak commit messages (exit 1 on FAIL)"
     )
     if not argv or argv[0] in {"-h", "--help"}:
         print(usage)
