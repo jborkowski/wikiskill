@@ -1,5 +1,9 @@
 # Next-stage evaluation: `issue-tracker`
 
+> **Applied:** `skills/issue-tracker` bumped to `0.4.0` from this brief (generic per-repo:
+> role→label resolution, bootstrap, no hard-coded foreign vocab).
+> Fresh-corpus acceptance checks below remain open until a new injected run.
+
 Baseline scored version: `0.3.0`. Recommended next version: `0.4.0`.
 
 Runs analyzed: **7** (evidence + CLM evaluations).

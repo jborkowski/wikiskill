@@ -1,19 +1,36 @@
 ---
 name: issue-tracker
-description: "Use the current repo's GitHub Issues safely: read issues, draft or publish tickets, apply configured triage labels, find related issues while working on a ticket, and set true blocking dependencies."
+description: "Use any repo's GitHub Issues safely: read issues, draft or publish tickets, apply that repo's triage labels, find related issues while working, and set blocking dependencies. Configure labels per install."
+metadata:
+  version: "0.4.0"
 ---
 
 # Issue Tracker
 
-Skill version: `0.3.0`
+Skill version: `0.4.0`
 
-The current repository tracks work in GitHub Issues. Use `gh` from the repo root.
+Generic skill for **any** Git repository that tracks work in **GitHub Issues** via the `gh` CLI. It does not assume a particular product, org, or label vocabulary.
 
-Reference files in this skill directory:
+## Per-repo configuration (do this once after install)
 
-- `issue-tracker-github.md` — the `gh` commands, the PR/triage surface, and wayfinding operations.
-- `triage-labels.md` — the label strings the configured tracker uses for the canonical triage roles.
-- `domain.md` — how to read the current repo's domain documentation (`CONTEXT.md`, `docs/adr/`) before exploring.
+1. Edit **`triage-labels.md`** in this skill directory (or your project's installed copy): set the **Repo label** column to match labels that already exist (or that you will create) on the GitHub repo.
+2. Optionally set **PRs as a request surface** in `issue-tracker-github.md` to `yes` if external PRs are triaged like issues.
+3. Domain docs paths in `domain.md` are **conventions**, not requirements — if files are missing, proceed silently.
+
+Do not hard-code another project's label names in procedures. Always resolve **role → repo label** through `triage-labels.md`.
+
+## Bootstrap
+
+Before first write in a repo:
+
+1. Confirm you are in the intended clone (`pwd`, `git remote -v`).
+2. Confirm Issues work: `gh issue list --limit 1` (or `gh repo view`). If Issues are disabled or `gh` cannot see the repo, stop and tell the user — this skill only supports GitHub Issues.
+
+## Reference files
+
+- `issue-tracker-github.md` — `gh` commands, optional PR triage.
+- `triage-labels.md` — canonical **roles** ↔ this repo's **label strings**.
+- `domain.md` — optional domain-doc discovery (`CONTEXT.md`, ADRs); skip quietly if absent.
 
 ## Remote confirmation (before any write)
 
@@ -38,6 +55,7 @@ Before creating a new issue, claiming a ticket, or breaking work into child tick
 2. List open issues: `gh issue list --state open --limit 50` (add `--label` filters when relevant).
 3. **Search** by keywords from the proposed title/topic (required unless the tracker has fewer than ~10 open issues and list already covers them):
    `gh search issues --repo <owner>/<repo> "<keywords>" --state open`
+   Resolve `<owner>/<repo>` from `git remote -v` / `gh repo view --json nameWithOwner -q .nameWithOwner`.
 4. Record candidates (numbers + one-line why related / duplicate / blocker) in the draft body **or** in your reply. Prefer linking or extending an existing issue over creating a duplicate.
 5. Only after that pass, proceed to draft or (when authorized) publish.
 
@@ -52,19 +70,21 @@ When the session is already about `#N` (implementation, review, or breakdown):
 3. If you find blockers or overlaps, report them before editing code or spawning children. Link with native dependencies or `Blocked by:` / `Related:` lines as appropriate.
 4. Skip only when the user forbids tracker exploration or restricts you to a single issue with no children.
 
-## Triage labels
+## Triage labels (roles, not hard-coded strings)
 
-Map every create or label edit to a role in `triage-labels.md`:
+Speak in **roles**; apply the **Repo label** from `triage-labels.md`:
 
-| Situation | Default role |
+| Situation | Role (look up Repo label) |
 | --- | --- |
-| Fully specified AFK work | `ready-for-agent` |
+| Fully specified AFK / agent work | `ready-for-agent` |
 | Needs maintainer judgment | `needs-triage` |
 | Waiting on reporter | `needs-info` |
 | Needs a human implementer | `ready-for-human` |
 | Will not action | `wontfix` |
 
-State the label you applied (or would apply on draft) in the summary to the user.
+If the Repo label for a role is empty or the label does not exist on the remote, say so and ask whether to create the label or use an existing substitute — do not invent another ecosystem's vocabulary.
+
+State the **repo label string** you applied (or would apply on draft) in the summary to the user.
 
 ## Write authorization
 
@@ -78,8 +98,9 @@ State the label you applied (or would apply on draft) in the summary to the user
 When publication is authorized:
 
 1. Pass the **hard publish gate** (Related-issue discovery + named candidates or explicit none-found).
-2. Create each issue with `gh issue create --title "..." --body "..." --label <triage-label>` (heredoc body; default label `ready-for-agent` when fully specified).
-3. Include `Parent: #<source>` in each new issue body. Do not attach GitHub sub-issue relationships to the source unless the user authorizes changing it.
+2. Resolve the triage **Repo label** for the intended role (default role: `ready-for-agent` when fully specified). Create with:
+   `gh issue create --title "..." --body "..." --label "<repo-label>"` (heredoc body).
+3. Include `Parent: #<source>` in each new issue body when breaking down a parent. Do not attach GitHub sub-issue relationships to the source unless the user authorizes changing it.
 4. When creating **two or more** related tickets in one operation, set blocking edges in the same operation:
    `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-database-id>`
    Use the blocker’s numeric database `id` (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`), not the `#number`. If native dependencies are unavailable, put `Blocked by: #<number>` at the top of the dependent body.
@@ -87,6 +108,7 @@ When publication is authorized:
 
 ## Changelog
 
-- `0.3.0` — Remote confirmation; hard publish gate; while-working discovery; triage checklist; multi-create dependency pairing (from next-stage eval).
-- `0.2.0` — Related-issue discovery required before create/claim; create steps renumbered.
-- `0.1.0` — Migrated portable issue-tracker skill (read, authz, create, dependencies, triage labels).
+- `0.4.0` — Generic per-repo config: role→label resolution, bootstrap, no hard-coded foreign vocab.
+- `0.3.0` — Remote confirmation; hard publish gate; while-working discovery; triage checklist; multi-create dependency pairing.
+- `0.2.0` — Related-issue discovery required before create/claim.
+- `0.1.0` — Initial portable issue-tracker skill.

@@ -18,7 +18,7 @@ only patterns are recorded here.
    (or prepare creates) without a dedicated duplicate/related scan for the proposed
    title/topic first.
 3. **List is used, but not as a gate.** When `gh issue list` appears, it is often for
-   wayfinding or parenting, not an explicit “candidates considered, none duplicate”
+   browsing open work or parenting, not an explicit “candidates considered, none duplicate”
    step before publish.
 4. **Skill helps tooling more than judgment.** CLM often ranked `skill_helped` high
    even when `outcome` was `failed` / sparse — the skill documents `gh` mechanics

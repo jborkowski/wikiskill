@@ -1,15 +1,27 @@
 # Triage Labels
 
-The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in the configured tracker's issue labels.
+Canonical **roles** used by this skills pack, mapped to **this repo's** GitHub label strings.
 
-| Label in mattpocock/skills | Label in our tracker | Meaning                                  |
-| -------------------------- | -------------------- | ---------------------------------------- |
-| `needs-triage`             | `needs-triage`       | Maintainer needs to evaluate this issue  |
-| `needs-info`               | `needs-info`         | Waiting on reporter for more information |
-| `ready-for-agent`          | `ready-for-agent`    | Fully specified, ready for an AFK agent  |
-| `ready-for-human`          | `ready-for-human`    | Requires human implementation            |
-| `wontfix`                  | `wontfix`            | Will not be actioned                     |
+After installing into a project, edit the **Repo label** column so it matches labels that exist (or will exist) on that repository. Leave a cell blank only temporarily; agents should ask before inventing labels.
 
-When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
+| Role | Repo label | Meaning |
+| --- | --- | --- |
+| `needs-triage` | `needs-triage` | Maintainer needs to evaluate this issue |
+| `needs-info` | `needs-info` | Waiting on reporter for more information |
+| `ready-for-agent` | `ready-for-agent` | Fully specified, ready for an AFK / agent run |
+| `ready-for-human` | `ready-for-human` | Requires human implementation |
+| `wontfix` | `wontfix` | Will not be actioned |
 
-Edit the right-hand column to match whatever vocabulary the current repo actually uses.
+When a skill says “apply the AFK-ready triage label”, use the **Repo label** for role `ready-for-agent` (right-hand editable column above — same string until you customize it).
+
+## Adapting to an existing tracker
+
+Examples (illustrative only — put your real strings in the table):
+
+| Role | Example remaps |
+| --- | --- |
+| `ready-for-agent` | `agent-ready`, `autofix`, `good-first-agent` |
+| `needs-triage` | `triage`, `unreviewed` |
+| `needs-info` | `waiting-for-author` |
+
+If the repo uses fewer labels, map multiple roles to the closest existing label and note that in a comment under the table.

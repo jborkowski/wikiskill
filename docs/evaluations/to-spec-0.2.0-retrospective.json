@@ -1,0 +1,29 @@
+{
+  "skill": "to-spec",
+  "baseline_version": "0.2.0",
+  "runs_analyzed": 6,
+  "gap_counts": {
+    "incomplete_spec_sections": 6,
+    "interviewed_user": 1,
+    "no_seams_check": 6,
+    "publish_without_issue_tracker": 0,
+    "publish_without_ready_label": 1,
+    "clm_failed_or_insufficient": 5,
+    "clm_helped_but_failed": 1
+  },
+  "recommended_version": "0.3.0",
+  "priorities": [
+    "Mandate full template coverage before publish (all six core sections present).",
+    "Keep no-interview rule explicit; if context is insufficient, say what is missing in Further Notes instead of grilling.",
+    "Require a short seams proposal + user confirmation checkpoint before drafting Implementation/Testing Decisions.",
+    "Always load/follow sibling issue-tracker for publish (authz, related-issue gate, ready-for-agent); install from jborkowski/wikiskill if missing.",
+    "When publishing, include ready-for-agent and name related-issue candidates in the issue body per issue-tracker hard publish gate."
+  ],
+  "acceptance_checks": [
+    "Fresh corpus with to-spec@0.3.0: spec_sections == 6/6 on every successful publish run.",
+    "interviewed=false on >= 90% of in-scope runs.",
+    "seams_checked=true before publish on every create run.",
+    "used_issue_tracker=true whenever published_creates > 0.",
+    "CLM succeeded|partially_succeeded share rises vs 0.2.0 on matched tasks."
+  ]
+}

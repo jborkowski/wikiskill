@@ -116,11 +116,12 @@ def cmd_commit_msg(message: str) -> int:
 
 
 def cmd_score_sessions(argv: list[str]) -> int:
-    """Score Pi sessions for issue-tracker (path via flag or WIKISKILL_SESSIONS_DIR)."""
+    """Score Pi sessions for a skill (path via flag or WIKISKILL_SESSIONS_DIR)."""
     parser = argparse.ArgumentParser(
         prog="eval score-sessions",
         description=(
-            "Ingest Pi agent session JSONL and score issue-tracker runs with CLM. "
+            "Ingest Pi agent session JSONL and score skill runs with CLM "
+            "(issue-tracker | to-spec). "
             "Pass --sessions-dir or set WIKISKILL_SESSIONS_DIR "
             "(e.g. $HOME/.pi/agent/sessions/<project-key>/). "
             "Do not commit raw transcripts."
@@ -134,7 +135,7 @@ def cmd_score_sessions(argv: list[str]) -> int:
     parser.add_argument(
         "--skill",
         default="issue-tracker",
-        choices=["issue-tracker"],
+        choices=["issue-tracker", "to-spec"],
         help="Skill to evaluate (default: issue-tracker)",
     )
     parser.add_argument(
@@ -210,7 +211,7 @@ def cmd_next_stage(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="eval next-stage",
         description=(
-            "Aggregate issue-tracker RunEvidence + EvaluationRecords into a next-stage "
+            "Aggregate RunEvidence + EvaluationRecords into a next-stage "
             "skill evaluation brief (priorities + acceptance checks)."
         ),
     )
@@ -218,6 +219,12 @@ def cmd_next_stage(argv: list[str]) -> int:
         "--runs-dir",
         required=True,
         help="Directory produced by score-sessions (contains evidence/ and evaluations/)",
+    )
+    parser.add_argument(
+        "--skill",
+        default=None,
+        choices=["issue-tracker", "to-spec"],
+        help="Skill brief to generate (default: read from runs-dir/manifest.json)",
     )
     parser.add_argument(
         "--out",
@@ -239,6 +246,7 @@ def cmd_next_stage(argv: list[str]) -> int:
         brief = write_next_stage_report(
             runs_dir,
             out_md,
+            skill=str(args.skill) if args.skill else None,
             baseline_version=str(args.baseline_version),
             recommended_version=str(args.recommended_version),
         )

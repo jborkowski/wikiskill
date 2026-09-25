@@ -35,7 +35,9 @@ export WIKISKILL_SESSIONS_DIR="$HOME/.pi/agent/sessions/<project-key>/"
 uv run eval score-sessions --skill issue-tracker --out eval/.runs/
 # or:
 uv run eval score-sessions --sessions-dir "$WIKISKILL_SESSIONS_DIR" --evidence-only
-uv run eval next-stage --runs-dir eval/.runs/ --out docs/evaluations/issue-tracker-next-stage.md
+uv run eval score-sessions --skill to-spec --out eval/.runs/to-spec-v0.1.0
+uv run eval next-stage --runs-dir eval/.runs/to-spec-v0.1.0 \
+  --out docs/evaluations/to-spec-next-stage.md --baseline-version 0.1.0 --recommended-version 0.2.0
 ```
 
 Outputs (gitignored under `eval/.runs/`):
@@ -134,6 +136,7 @@ Quantized MLX ≠ CUDA fp16; treat scores as experimental.
 | `ingest.pi` | Pi agent session JSONL loader |
 | `excerpt` | Build actions/outcome excerpts for CLM |
 | `tasks.issue_tracker` | In-scope filter + `RunEvidence` for issue-tracker |
+| `tasks.to_spec` | In-scope filter + `RunEvidence` for to-spec |
 | `score_sessions` | Batch score sessions → gitignored `.runs/` |
 | `next_stage` | Aggregate scored runs → next skill-stage brief |
 | `mlx_emb.server` | FastAPI embeddings app for Mac |

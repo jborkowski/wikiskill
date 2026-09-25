@@ -8,7 +8,7 @@ from pathlib import Path
 
 from wikiskill_eval.ingest.pi import load_pi_sessions_dir
 from wikiskill_eval.pipeline import Evaluator
-from wikiskill_eval.tasks import issue_tracker
+from wikiskill_eval.tasks import issue_tracker, to_spec
 from wikiskill_eval.types import EvaluationRecord, RunEvidence, StrictModel
 
 
@@ -47,15 +47,26 @@ def build_evidence_for_skill(
 ) -> list[RunEvidence]:
     """Load Pi sessions and build RunEvidence for the requested skill."""
     sessions = load_pi_sessions_dir(sessions_dir)
-    if skill != "issue-tracker":
-        raise ValueError(f"unsupported skill: {skill!r}")
-    ver = version or issue_tracker.SKILL_VERSION
-    return issue_tracker.evidence_from_sessions(sessions, version=ver, max_chars=max_chars)
+    if skill == "issue-tracker":
+        ver = version or issue_tracker.SKILL_VERSION
+        return issue_tracker.evidence_from_sessions(sessions, version=ver, max_chars=max_chars)
+    if skill == "to-spec":
+        ver = version or to_spec.SKILL_VERSION
+        return to_spec.evidence_from_sessions(sessions, version=ver, max_chars=max_chars)
+    raise ValueError(f"unsupported skill: {skill!r}")
 
 
 def write_json(path: Path, model: StrictModel) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     _ = path.write_text(model.model_dump_json(indent=2) + "\n", encoding="utf-8")
+
+
+def _default_version(skill: str) -> str:
+    if skill == "issue-tracker":
+        return issue_tracker.SKILL_VERSION
+    if skill == "to-spec":
+        return to_spec.SKILL_VERSION
+    return "0.0.0"
 
 
 def score_sessions(
@@ -76,7 +87,7 @@ def score_sessions(
         version=version,
         max_chars=max_chars,
     )
-    ver = version or (issue_tracker.SKILL_VERSION if skill == "issue-tracker" else "0.0.0")
+    ver = version or _default_version(skill)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     evidence_dir = out_dir / "evidence"

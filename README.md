@@ -6,26 +6,26 @@ Installable via [skills.sh](https://www.skills.sh) / the [`skills`](https://gith
 
 ## Install
 
-Once this repo is public and contains skills under `skills/`:
-
 ```bash
 # List available skills
-npx skills add https://github.com/jborkowski/wikiskills --list
+npx skills add https://github.com/jborkowski/wikiskill --list
 
 # Install one skill
-npx skills add https://github.com/jborkowski/wikiskills --skill <skill>
+npx skills add https://github.com/jborkowski/wikiskill --skill issue-tracker
+npx skills add https://github.com/jborkowski/wikiskill --skill to-spec
+npx skills add https://github.com/jborkowski/wikiskill --skill to-tickets
+npx skills add https://github.com/jborkowski/wikiskill --skill implement
+npx skills add https://github.com/jborkowski/wikiskill --skill skill-evolve
 
 # Or GitHub shorthand
-npx skills add jborkowski/wikiskills --skill <skill>
+npx skills add jborkowski/wikiskill --skill issue-tracker
 ```
-
-> Local clone is currently named `wikiskill`; the install URL uses `wikiskills` after the GitHub rename.
 
 From a local checkout:
 
 ```bash
-npx skills add ./path/to/wikiskill --list
-npx skills add ./path/to/wikiskill --skill <skill>
+npx skills add . --list
+npx skills add . --skill issue-tracker
 ```
 
 ## Repository layout

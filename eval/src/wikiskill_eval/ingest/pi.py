@@ -183,13 +183,17 @@ def load_pi_session(path: Path) -> PiSession:
                                         issue_numbers.append(n)
                                 if "issue-tracker" in cmd and "issue-tracker" not in skill_mentions:
                                     skill_mentions.append("issue-tracker")
+                                if "to-spec" in cmd and "to-spec" not in skill_mentions:
+                                    skill_mentions.append("to-spec")
                             path_arg = args.get("path")
-                            if (
-                                isinstance(path_arg, str)
-                                and "issue-tracker" in path_arg
-                                and "issue-tracker" not in skill_mentions
-                            ):
-                                skill_mentions.append("issue-tracker")
+                            if isinstance(path_arg, str):
+                                if (
+                                    "issue-tracker" in path_arg
+                                    and "issue-tracker" not in skill_mentions
+                                ):
+                                    skill_mentions.append("issue-tracker")
+                                if "to-spec" in path_arg and "to-spec" not in skill_mentions:
+                                    skill_mentions.append("to-spec")
                 continue
 
             if role == "toolResult":

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Skill Evolve"
+  short_description: "Evaluate, distill, patch, and dogfood skills"
+policy:
+  allow_implicit_invocation: false

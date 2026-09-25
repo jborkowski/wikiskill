@@ -1,7 +1,7 @@
 # Next-stage evaluation: `issue-tracker`
 
 
-> **Applied:** `skills/issue-tracker` bumped to `0.3.0` from this brief (remote confirmation, hard publish gate, while-working discovery, triage checklist, multi-create dependency pairing). Retrospective CLM re-score is under `eval/.runs/v0.3.0-retrospective/` (gitignored); see also `issue-tracker-0.3.0-retrospective.md` for post-patch gap snapshot.
+> **Applied:** `skills/issue-tracker` bumped to `0.3.0` from this brief (remote confirmation, hard publish gate, while-working discovery, triage checklist, multi-create dependency pairing). Retrospective CLM re-score is under `eval/.runs/v0.3.0-retrospective/` (gitignored); see also `issue-tracker-0.3.0-retrospective.md` for post-patch gap snapshot — that brief’s recommended `0.4.0` (generic per-repo) is also applied.
 Baseline scored version: `0.2.0`. Recommended next version: `0.3.0`.
 
 Runs analyzed: **7** (evidence + CLM evaluations).
