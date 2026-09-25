@@ -69,3 +69,7 @@ Optional root `skills.sh.json` configures groupings on the skills.sh repo page a
 - [Paper summary](docs/paper-summary.md) — WikiSkill method and implications for a local tool
 - [Evaluation notes](docs/evaluation-notes.md) — proposed CLM-based rough evaluation of skill runs
 - [paper.pdf](docs/paper.pdf) — source paper
+
+## Evaluation library (CLM + MLX)
+
+Python package under [`eval/`](eval/) — import `Evaluator` / `EvalClient`; see [`eval/README.md`](eval/README.md).
