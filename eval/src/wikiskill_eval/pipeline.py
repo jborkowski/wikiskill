@@ -5,8 +5,13 @@ Grow batching, storage, and version comparison here — not in shell wrappers.
 
 from __future__ import annotations
 
-from wikiskill_eval.client import EvalClient, EvalConfig
-from wikiskill_eval.types import EvaluationRecord, RunEvidence
+from typing import TYPE_CHECKING
+
+from wikiskill_eval.client import EvalClient
+
+if TYPE_CHECKING:
+    from wikiskill_eval.client import EvalConfig
+    from wikiskill_eval.types import EvaluationRecord, RunEvidence
 
 
 class Evaluator:

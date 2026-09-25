@@ -1,13 +1,14 @@
-"""Well-typed evaluation client over ``clm.CLMClient``."""
+"""Typed evaluation client over ``clm.CLMClient``."""
 
 from __future__ import annotations
 
-import os
 import uuid
-from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
-from wikiskill_eval.rubric import RUBRIC_VERSION, OUTCOME_CRITERIA, build_questions
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from wikiskill_eval.rubric import OUTCOME_CRITERIA, RUBRIC_VERSION, build_questions
 from wikiskill_eval.types import (
     ChoiceResult,
     EvaluationRecord,
@@ -18,45 +19,51 @@ from wikiskill_eval.types import (
 )
 
 
-@dataclass(frozen=True)
-class EvalConfig:
-    """Connection settings for a running ``clm-serve`` instance."""
+class EvalConfig(BaseSettings):
+    """Connection settings for a running ``clm-serve`` instance (``CLM_*`` env)."""
 
-    base_url: str = "http://127.0.0.1:8700"
+    model_config = SettingsConfigDict(
+        env_prefix="CLM_",
+        env_file=None,
+        extra="forbid",
+        validate_assignment=True,
+    )
+
+    base_url: str = Field(default="http://127.0.0.1:8700")
     api_key: str | None = None
-    model: str = "clm-latest"
-    timeout: float = 300.0
-    temperature: float | None = None
+    model: str = Field(default="clm-latest", min_length=1)
+    timeout: float = Field(default=300.0, gt=0.0)
+    temperature: float | None = Field(default=None, gt=0.0, le=100.0)
     checkpoint_note: str | None = None
 
     @classmethod
     def from_env(cls) -> EvalConfig:
-        return cls(
-            base_url=os.environ.get("CLM_BASE_URL", "http://127.0.0.1:8700"),
-            api_key=os.environ.get("CLM_API_KEY"),
-            model=os.environ.get("CLM_MODEL", "clm-latest"),
-            timeout=float(os.environ.get("CLM_TIMEOUT", "300")),
-            temperature=(
-                float(os.environ["CLM_TEMPERATURE"])
-                if "CLM_TEMPERATURE" in os.environ
-                else None
-            ),
-            checkpoint_note=os.environ.get("CLM_CHECKPOINT_NOTE"),
-        )
+        """Load from ``CLM_*`` environment variables."""
+        return cls()
 
 
-def _require_clm() -> Any:
+@runtime_checkable
+class _ClmSystemOneClient(Protocol):
+    def health(self) -> bool: ...
+
+    def system_one(
+        self,
+        state: Any,
+        questions: dict[str, Any],
+        model: str | None = None,
+        temperature: float | None = None,
+    ) -> Any: ...
+
+
+def _require_clm() -> type[Any]:
     try:
-        import clm  # noqa: F401
-        from clm import CLMClient, Choice, Noul, Score
+        from clm import CLMClient
     except ImportError as e:
         raise ImportError(
-            "contrastive-lm is not installed. On macOS (no vLLM):\n"
-            "  uv pip install contrastive-lm --no-deps\n"
-            "Then ensure torch, fastapi, uvicorn, numpy, and requests are present "
-            "(they are project dependencies)."
+            "contrastive-lm is not installed. From eval/: run `uv sync` "
+            "(vllm is excluded; MLX covers the encoder on Apple Silicon)."
         ) from e
-    return CLMClient, Choice, Noul, Score
+    return CLMClient
 
 
 def _noul(answer: Any) -> NoulResult:
@@ -110,9 +117,9 @@ class EvalClient:
     """Orchestrates skill-run evaluation against a local ``clm-serve`` API."""
 
     def __init__(self, config: EvalConfig | None = None) -> None:
-        CLMClient, _, _, _ = _require_clm()
+        clm_client_cls = _require_clm()
         self.config = config or EvalConfig.from_env()
-        self._client = CLMClient(
+        self._client: _ClmSystemOneClient = clm_client_cls(
             base_url=self.config.base_url,
             api_key=self.config.api_key,
             timeout=self.config.timeout,
@@ -153,7 +160,7 @@ class EvalClient:
             evaluation_id=str(uuid.uuid4()),
             run_id=evidence.run_id,
             skill=evidence.skill,
-            evaluator_model=response.model,
+            evaluator_model=str(response.model),
             evaluator_checkpoint=self.config.checkpoint_note,
             rubric_version=RUBRIC_VERSION,
             candidate_set=list(OUTCOME_CRITERIA.keys()),

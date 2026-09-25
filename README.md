@@ -72,4 +72,11 @@ Optional root `skills.sh.json` configures groupings on the skills.sh repo page a
 
 ## Evaluation library (CLM + MLX)
 
-Python package under [`eval/`](eval/) — import `Evaluator` / `EvalClient`; see [`eval/README.md`](eval/README.md).
+From the **repo root**:
+
+```bash
+uv sync
+uv run eval run
+```
+
+Package sources live under [`eval/`](eval/). Details: [`eval/README.md`](eval/README.md).

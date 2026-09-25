@@ -4,15 +4,39 @@ Python library for rough skill-run evaluation with [CLM](https://huggingface.co/
 Pipeline code lives in `wikiskill_eval` — import and call it; no shell wrappers.
 
 On Apple Silicon, `wikiskill_eval.mlx_emb` is a FastAPI app that serves **Qwen3-8B last-token**
-embeddings (CLM encoder slot). Not Qwen3-Embedding-*. Official CLM uses vLLM (not on macOS);
-install with `uv pip install contrastive-lm --no-deps` after `uv sync`.
+embeddings (CLM encoder slot). Not Qwen3-Embedding-*. Official CLM pulls `vllm` for CUDA
+pooling; this project excludes that transitive dep via uv and uses MLX instead.
 
 ## Install
 
+From the **repository root** (not only `eval/`):
+
 ```bash
-cd eval
-uv sync --python 3.12
-uv pip install contrastive-lm --no-deps
+uv sync
+uv run eval run
+uv run eval commit-msg "feat(eval): add CLM commit-msg density check"
+```
+
+| Command | Purpose |
+|---|---|
+| `eval run` | Smoke: invoice System One → `department=billing` |
+| `eval commit-msg` | Advisory/fun: CLM scores format + density (exit 0; `SKIP` if CLM unavailable) |
+
+Both start MLX emb + `clm-serve` as subprocesses, then tear down.
+
+## Tooling (types + Zod-like schemas + format/lint)
+
+| Tool | Role |
+|---|---|
+| **Pydantic v2** (`StrictModel`) | Zod-like runtime schemas (`extra=forbid`, `strict`, field bounds) |
+| **pydantic-settings** | Typed `EvalConfig` / `MlxEmbSettings` from env |
+| **basedpyright** | Static type checker (`typeCheckingMode = strict`) |
+| **Ruff** | Formatter + linter |
+
+```bash
+uv run ruff format src
+uv run ruff check src --fix
+uv run basedpyright
 ```
 
 ## API

@@ -11,74 +11,81 @@ and L2-normalizes client-side — so we return raw last-token hidden states.
 from __future__ import annotations
 
 import base64
-import os
 import time
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 DEFAULT_MODEL_ID = "qwen3-8b"
 DEFAULT_HF_REPO = "mlx-community/Qwen3-8B-4bit"
 DEFAULT_MAX_TOKENS = 2048
 
 
-@dataclass(frozen=True)
-class MlxEmbSettings:
+class MlxEmbSettings(BaseSettings):
     """Runtime settings for the MLX Qwen3-8B embedding application."""
 
-    repo: str = DEFAULT_HF_REPO
-    served_name: str = DEFAULT_MODEL_ID
-    max_tokens: int = DEFAULT_MAX_TOKENS
-    host: str = "127.0.0.1"
-    port: int = 8090
+    model_config = SettingsConfigDict(
+        env_prefix="WIKISKILL_MLX_",
+        extra="forbid",
+        validate_assignment=True,
+    )
+
+    repo: str = Field(default=DEFAULT_HF_REPO, min_length=1)
+    served_name: str = Field(default=DEFAULT_MODEL_ID, min_length=1)
+    max_tokens: int = Field(default=DEFAULT_MAX_TOKENS, gt=0)
+    host: str = Field(default="127.0.0.1", min_length=1)
+    port: int = Field(default=8090, ge=1, le=65535)
 
     @classmethod
     def from_env(cls) -> MlxEmbSettings:
-        return cls(
-            repo=os.environ.get("WIKISKILL_MLX_REPO", DEFAULT_HF_REPO),
-            served_name=os.environ.get("WIKISKILL_MLX_SERVED_NAME", DEFAULT_MODEL_ID),
-            max_tokens=int(os.environ.get("WIKISKILL_MLX_MAX_TOKENS", str(DEFAULT_MAX_TOKENS))),
-            host=os.environ.get("WIKISKILL_MLX_HOST", "127.0.0.1"),
-            port=int(os.environ.get("WIKISKILL_MLX_PORT", "8090")),
-        )
+        return cls()
 
 
-class EmbeddingRequest(BaseModel):
+class ApiModel(BaseModel):
+    """Wire models: coerce JSON, reject unknown fields."""
+
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+
+class EmbeddingRequest(ApiModel):
     model: str = DEFAULT_MODEL_ID
     input: str | list[str]
     encoding_format: Literal["float", "base64"] = "float"
-    truncate_prompt_tokens: int | None = None
+    truncate_prompt_tokens: int | None = Field(default=None, gt=0)
 
 
-class EmbeddingData(BaseModel):
+class EmbeddingData(ApiModel):
     object: Literal["embedding"] = "embedding"
-    index: int
+    index: int = Field(ge=0)
     embedding: list[float] | str
 
 
-class EmbeddingUsage(BaseModel):
-    prompt_tokens: int
-    total_tokens: int
+class EmbeddingUsage(ApiModel):
+    prompt_tokens: int = Field(ge=0)
+    total_tokens: int = Field(ge=0)
 
 
-class EmbeddingResponse(BaseModel):
+class EmbeddingResponse(ApiModel):
     object: Literal["list"] = "list"
     model: str
     data: list[EmbeddingData]
     usage: EmbeddingUsage
 
 
-class ModelCard(BaseModel):
+class ModelCard(ApiModel):
     id: str
     object: Literal["model"] = "model"
     owned_by: str = "wikiskill-mlx"
 
 
-class ModelsResponse(BaseModel):
+class ModelsResponse(ApiModel):
     object: Literal["list"] = "list"
     data: list[ModelCard]
 
@@ -97,7 +104,8 @@ class Encoder:
         import mlx.core as mx
         from mlx_lm import load
 
-        self._model, self._tokenizer = load(self.repo)
+        loaded = load(self.repo)
+        self._model, self._tokenizer = loaded[0], loaded[1]
         _ = self.embed(["ok"])
         mx.eval(mx.array(0))
 
@@ -105,7 +113,9 @@ class Encoder:
     def ready(self) -> bool:
         return self._model is not None and self._tokenizer is not None
 
-    def embed(self, texts: list[str], max_tokens: int | None = None) -> tuple[list[np.ndarray], int]:
+    def embed(
+        self, texts: list[str], max_tokens: int | None = None
+    ) -> tuple[list[np.ndarray], int]:
         import mlx.core as mx
 
         if not self.ready:
@@ -117,9 +127,8 @@ class Encoder:
         prompt_tokens = 0
 
         for text in texts:
-            encoded = self._tokenizer.encode(text)
-            if not isinstance(encoded, list):
-                encoded = list(encoded)
+            raw_ids = self._tokenizer.encode(text)
+            encoded: list[int] = list(raw_ids) if not isinstance(raw_ids, list) else list(raw_ids)
             if len(encoded) > limit:
                 encoded = encoded[:limit]
             prompt_tokens += len(encoded)
@@ -130,7 +139,7 @@ class Encoder:
 
             ids = mx.array(encoded)[None, :]
             hidden = self._model.model(ids)
-            last = hidden[:, -1, :]
+            last = hidden[:, -1, :].astype(mx.float32)
             mx.eval(last)
             vectors.append(np.array(last[0], dtype=np.float32))
 
@@ -151,14 +160,11 @@ def create_app(settings: MlxEmbSettings | None = None) -> FastAPI:
     cfg = settings or MlxEmbSettings.from_env()
 
     @asynccontextmanager
-    async def lifespan(_app: FastAPI):
+    async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
         global _encoder
-        _encoder = Encoder(
-            repo=cfg.repo, max_tokens=cfg.max_tokens, served_name=cfg.served_name
-        )
+        _encoder = Encoder(repo=cfg.repo, max_tokens=cfg.max_tokens, served_name=cfg.served_name)
         print(
-            f"[mlx-emb] loading {cfg.repo} as {cfg.served_name} "
-            f"(max_tokens={cfg.max_tokens})…",
+            f"[mlx-emb] loading {cfg.repo} as {cfg.served_name} (max_tokens={cfg.max_tokens})…",
             flush=True,
         )
         t0 = time.perf_counter()
@@ -186,7 +192,7 @@ def create_app(settings: MlxEmbSettings | None = None) -> FastAPI:
             raise HTTPException(status_code=400, detail="input must not be empty")
         try:
             vecs, tokens = enc.embed(texts, max_tokens=req.truncate_prompt_tokens)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             raise HTTPException(status_code=500, detail=str(e)) from e
 
         data: list[EmbeddingData] = []
