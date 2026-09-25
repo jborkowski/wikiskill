@@ -18,9 +18,14 @@ __pycache__/
 .eval/
 eval/.venv/
 eval/**/.venv/
+eval/.runs/
 .venv/
 dist/
 *.egg-info/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+
+# Local agent session mirrors (never commit raw transcripts)
+data/transcripts/
+data/sessions/

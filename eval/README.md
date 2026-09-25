@@ -21,8 +21,30 @@ uv run eval commit-msg "feat(eval): add CLM commit-msg density check"
 |---|---|
 | `eval run` | Smoke: invoice System One → `department=billing` |
 | `eval commit-msg` | **Hard gate:** CLM rejects slop / weak messages (`PASS`/`FAIL`, exit 1 on fail; fails closed if CLM down) |
+| `eval score-sessions` | Pi session JSONL → `RunEvidence` / `EvaluationRecord` under `--out` (default `eval/.runs/`) |
+| `eval next-stage` | Aggregate scored runs → next skill-stage evaluation brief (markdown + JSON) |
 
-Both start MLX emb + `clm-serve` as subprocesses, then tear down.
+Both `run` / `commit-msg` start MLX emb + `clm-serve` as subprocesses, then tear down. `score-sessions` does the same unless `--evidence-only`. `next-stage` is offline over existing run dirs.
+
+### Score Pi sessions (issue-tracker)
+
+Pass the sessions directory at runtime — never commit raw transcripts or absolute home paths:
+
+```bash
+export WIKISKILL_SESSIONS_DIR="$HOME/.pi/agent/sessions/<project-key>/"
+uv run eval score-sessions --skill issue-tracker --out eval/.runs/
+# or:
+uv run eval score-sessions --sessions-dir "$WIKISKILL_SESSIONS_DIR" --evidence-only
+uv run eval next-stage --runs-dir eval/.runs/ --out docs/evaluations/issue-tracker-next-stage.md
+```
+
+Outputs (gitignored under `eval/.runs/`):
+
+- `evidence/<run_id>.json` — `RunEvidence`
+- `evaluations/<run_id>.json` — `EvaluationRecord` (unless `--evidence-only`)
+- `manifest.json` — counts and run ids (no sessions path)
+
+Next-stage briefs (committed under `docs/evaluations/`) summarize behavioral gaps and propose the next skill version.
 
 ## Tooling (types + Zod-like schemas + format/lint)
 
@@ -109,4 +131,9 @@ Quantized MLX ≠ CUDA fp16; treat scores as experimental.
 | `rubric` | Fixed CLM `Noul` / `Choice` / `Score` questions |
 | `client` | `EvalClient` over `clm.CLMClient` |
 | `pipeline` | `Evaluator` — grow the full pipeline here |
+| `ingest.pi` | Pi agent session JSONL loader |
+| `excerpt` | Build actions/outcome excerpts for CLM |
+| `tasks.issue_tracker` | In-scope filter + `RunEvidence` for issue-tracker |
+| `score_sessions` | Batch score sessions → gitignored `.runs/` |
+| `next_stage` | Aggregate scored runs → next skill-stage brief |
 | `mlx_emb.server` | FastAPI embeddings app for Mac |
