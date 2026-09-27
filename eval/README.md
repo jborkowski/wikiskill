@@ -23,7 +23,29 @@ uv run eval commit-msg "feat(eval): add CLM commit-msg density check"
 | `eval commit-msg` | **Hard gate:** CLM rejects slop / weak messages (`PASS`/`FAIL`, exit 1 on fail; fails closed if CLM down) |
 | `eval score-sessions` | Pi session JSONL → `RunEvidence` / `EvaluationRecord` under `--out` (default `eval/.runs/`) |
 | `eval next-stage` | Aggregate scored runs → next skill-stage evaluation brief (markdown + JSON) |
+| `eval density-probe` | Score skill text density vs slop; write `cursor-agent --yolo` line-ablation bundle |
 | `bootstrap-skill` | Create `skills/<name>/` + eval task module; register for `--skill` choices |
+
+### Skill density vs slop
+
+The skill-run rubric (`skill-run-v0.2`) includes **`skill_density`**: under-specified → thin → **dense and clear** (sweet spot) → **padded slop** (high is worse). Run evidence embeds skill markdown when `skills/<name>/SKILL.md` is available.
+
+Empirically find which lines point the agent vs disturb it:
+
+```bash
+# CLM-score the skill text + write ablation variants + run.sh
+uv run eval density-probe --skill handoff \
+  --prompt "Write a handoff for finishing the handoff skill docs"
+
+# Optional: run a couple of variants immediately
+uv run eval density-probe --skill handoff \
+  --prompt "…" --execute --execute-variants as_is,atoms_only
+
+# Or run the full matrix yourself:
+bash eval/.runs/density-handoff-*/run.sh
+```
+
+Under the out dir: `atoms.json` (instruction lines), `variants/` (`as_is`, `atoms_only`, `only_NN`, `drop_NN`), `prompts/`, `logs/`. Compare `only_*` (which single line drives action) vs `drop_*` (which absence breaks behavior) vs `as_is`/`atoms_only` (full doc vs dense spine).
 
 ### Register a skill for the eval bench
 
@@ -150,6 +172,8 @@ Quantized MLX ≠ CUDA fp16; treat scores as experimental.
 | `tasks.issue_tracker` | In-scope filter + `RunEvidence` for issue-tracker |
 | `tasks.to_spec` | In-scope filter + `RunEvidence` for to-spec |
 | `bootstrap` | `bootstrap-skill` CLI — pack files + eval task scaffolding |
+| `density_probe` | Skill density vs slop + cursor-agent line ablation |
+| `skill_io` | Load `skills/<name>/SKILL.md` for evidence / probes |
 | `score_sessions` | Batch score sessions → gitignored `.runs/` |
 | `next_stage` | Aggregate scored runs → next skill-stage brief |
 | `mlx_emb.server` | FastAPI embeddings app for Mac |

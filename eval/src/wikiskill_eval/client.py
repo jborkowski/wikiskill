@@ -154,6 +154,7 @@ class EvalClient:
         scores = RubricScores(
             outcome=_choice(answers["outcome"]),
             skill_helped=_noul(answers["skill_helped"]),
+            skill_density=_score(answers["skill_density"]),
             evidence_quality=_score(answers["evidence_quality"]),
         )
         return EvaluationRecord(

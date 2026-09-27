@@ -59,6 +59,10 @@ class RunEvidence(StrictModel):
         description="Selected actions / tool results; omit full transcript here.",
     )
     observed_outcome: str = Field(min_length=1)
+    skill_text: str | None = Field(
+        default=None,
+        description="Pinned skill markdown (or excerpt) for density / clarity scoring.",
+    )
     omitted_note: str | None = Field(
         default=None,
         description="What was truncated or omitted from the full transcript.",
@@ -74,9 +78,15 @@ class RunEvidence(StrictModel):
         parts = [
             f"Task: {self.task}",
             f"Skill: {self.skill.name}@{self.skill.version}",
-            f"Actions / tool results:\n{self.actions_excerpt}",
-            f"Observed outcome: {self.observed_outcome}",
         ]
+        if self.skill_text:
+            parts.append(f"Skill text:\n{self.skill_text}")
+        parts.extend(
+            [
+                f"Actions / tool results:\n{self.actions_excerpt}",
+                f"Observed outcome: {self.observed_outcome}",
+            ]
+        )
         if self.omitted_note:
             parts.append(f"Omitted content: {self.omitted_note}")
         text = "\n\n".join(parts)
@@ -125,6 +135,7 @@ class RubricScores(StrictModel):
 
     outcome: ChoiceResult
     skill_helped: NoulResult
+    skill_density: ScoreResult
     evidence_quality: ScoreResult
 
 

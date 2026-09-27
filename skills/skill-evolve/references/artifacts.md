@@ -65,6 +65,10 @@ uv run eval score-sessions --skill <name> --out eval/.runs/<label>
 uv run eval next-stage --runs-dir eval/.runs/<label> \
   --out docs/evaluations/<skill>-next-stage.md \
   --baseline-version <b> --recommended-version <n>
+
+# Density vs slop (cursor-agent --yolo line ablation)
+uv run eval density-probe --skill <name> --prompt "<fixed task>"
+bash eval/.runs/density-<name>-*/run.sh
 ```
 
 Supported `--skill` values come from `wikiskill_eval.tasks.registry` (auto-discovers task modules). Bootstrap a new skill + eval wiring with `uv run bootstrap-skill <name>` (see `eval/README.md`).

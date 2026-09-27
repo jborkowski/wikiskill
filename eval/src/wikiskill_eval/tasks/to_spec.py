@@ -13,11 +13,11 @@ if TYPE_CHECKING:
     from wikiskill_eval.next_stage import NextStageBrief, RunSignalRow
 
 SKILL_NAME = "to-spec"
-SKILL_VERSION = "0.4.0"
+SKILL_VERSION = "0.5.0"
 
 _TASK_FRAME = """Evaluate whether the pinned to-spec skill helped on this agent run.
 
-Judge these behaviors specifically (skill 0.4.0 — generic per-repo expectations):
+Judge these behaviors specifically (skill 0.5.0 — generic per-repo expectations):
 1. No interview: synthesize from conversation; put gaps in Further Notes — do not grill.
 2. Explore the current repo / domain docs when present; no hard-coded project paths.
 3. Seams checkpoint: propose test seams and get user confirmation before Implementation/Testing Decisions or publish.
@@ -134,9 +134,9 @@ skill_ref, to_run_evidence, evidence_from_sessions = bind_evidence_builders(
 )
 
 SIGNAL_TABLE_HEADER = (
-    "| run | outcome | helped | evid | sections | interviewed | seams | "
+    "| run | outcome | helped | density | evid | sections | interviewed | seams | "
     "issue_tracker | creates | ready_label |\n"
-    "| --- | --- | ---: | ---: | ---: | --- | --- | --- | ---: | --- |"
+    "| --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |"
 )
 
 

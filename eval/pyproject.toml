@@ -88,6 +88,7 @@ ignore = [
 "src/wikiskill_eval/bootstrap.py" = ["T20"]
 "src/wikiskill_eval/__main__.py" = ["T20"]
 "src/wikiskill_eval/runtime.py" = ["S603", "S607"]
+"src/wikiskill_eval/density_probe.py" = ["S603", "S607"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["wikiskill_eval"]

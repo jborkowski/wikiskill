@@ -12,11 +12,11 @@ if TYPE_CHECKING:
     from wikiskill_eval.next_stage import NextStageBrief, RunSignalRow
 
 SKILL_NAME = "issue-tracker"
-SKILL_VERSION = "0.5.0"
+SKILL_VERSION = "0.6.0"
 
 _TASK_FRAME = """Evaluate whether the pinned issue-tracker skill helped on this agent run.
 
-Judge these behaviors specifically (skill 0.5.0 — generic per-repo expectations):
+Judge these behaviors specifically (skill 0.6.0 — generic per-repo expectations):
 1. Bootstrap: confirm git remote / gh can see Issues before writes.
 2. Resolve triage via role → Repo label from triage-labels.md (do not invent foreign labels).
 3. Related-issue discovery before create/claim: list + preferably search; name candidates.
@@ -63,9 +63,9 @@ skill_ref, to_run_evidence, evidence_from_sessions = bind_evidence_builders(
 )
 
 SIGNAL_TABLE_HEADER = (
-    "| run | outcome | helped | evid | creates | lists | views | searches | "
+    "| run | outcome | helped | density | evid | creates | lists | views | searches | "
     "labels | deps | remote | related_gate |\n"
-    "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |"
+    "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |"
 )
 
 

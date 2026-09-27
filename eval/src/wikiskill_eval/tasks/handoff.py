@@ -176,9 +176,9 @@ skill_ref, to_run_evidence, evidence_from_sessions = bind_evidence_builders(
 )
 
 SIGNAL_TABLE_HEADER = (
-    "| run | outcome | helped | evid | sections | temp | workspace | "
+    "| run | outcome | helped | density | evid | sections | temp | workspace | "
     "suggested | resume | continued |\n"
-    "| --- | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- |"
+    "| --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |"
 )
 
 

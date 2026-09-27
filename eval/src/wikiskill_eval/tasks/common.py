@@ -6,6 +6,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from wikiskill_eval.excerpt import build_actions_excerpt, build_observed_outcome
+from wikiskill_eval.skill_io import read_skill_text, truncate_skill_text
 from wikiskill_eval.types import RunEvidence, SkillRef
 
 if TYPE_CHECKING:
@@ -25,6 +26,13 @@ def make_skill_ref(
     return SkillRef(name=name, version=version, content_digest=content_digest)
 
 
+def _load_skill_text(skill_name: str, *, max_chars: int) -> str | None:
+    try:
+        return truncate_skill_text(read_skill_text(skill_name), max_chars=min(4000, max_chars))
+    except (OSError, FileNotFoundError):
+        return None
+
+
 def make_run_evidence(
     session: PiSession,
     *,
@@ -35,18 +43,21 @@ def make_run_evidence(
     content_digest: str | None = None,
     observed_outcome: OutcomeBuilder | None = None,
     enrich_actions: ActionsBuilder | None = None,
+    skill_text: str | None = None,
 ) -> RunEvidence:
     """Build evaluator evidence for one in-scope Pi session."""
     actions, omitted = build_actions_excerpt(session, max_chars=max_chars)
     if enrich_actions is not None:
         actions = enrich_actions(session, actions, max_chars)
     outcome_fn = observed_outcome or build_observed_outcome
+    body = skill_text if skill_text is not None else _load_skill_text(skill_name, max_chars=max_chars)
     return RunEvidence(
         run_id=session.session_id,
         task=task_frame.format(user_task=session.first_user_task),
         skill=make_skill_ref(skill_name, version=version, content_digest=content_digest),
         actions_excerpt=actions,
         observed_outcome=outcome_fn(session),
+        skill_text=body,
         omitted_note=omitted,
         max_chars=max_chars,
     )

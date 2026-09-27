@@ -5,6 +5,7 @@ Commands:
   commit-msg      — hard gate: CLM judges commit message (reject slop / weak density)
   score-sessions  — Pi sessions → RunEvidence / EvaluationRecord under out dir
   next-stage      — aggregate scored runs → next skill-stage evaluation brief
+  density-probe   — skill density vs slop + cursor-agent --yolo line ablation
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ from pathlib import Path
 
 from wikiskill_eval import EvalClient, EvalConfig
 from wikiskill_eval.commit_msg import evaluate_commit_msg, verify_commit_msg
+from wikiskill_eval.density_probe import prepare_density_probe
 from wikiskill_eval.next_stage import write_next_stage_report
 from wikiskill_eval.pipeline import Evaluator
 from wikiskill_eval.runtime import EvalRuntime
@@ -265,16 +267,128 @@ def cmd_next_stage(argv: list[str]) -> int:
     return 0
 
 
+def cmd_density_probe(argv: list[str]) -> int:
+    """CLM-score skill text + write cursor-agent density ablation bundle."""
+    skills = skill_names()
+    # Also allow skills that exist on disk but lack an eval task yet
+    parser = argparse.ArgumentParser(
+        prog="eval density-probe",
+        description=(
+            "Score skill markdown density (dense/clear vs padded slop) and prepare "
+            "a cursor-agent --yolo line-ablation probe (only_*/drop_*/atoms_only)."
+        ),
+    )
+    parser.add_argument("--skill", required=True, help="Skill directory name")
+    parser.add_argument(
+        "--prompt",
+        required=True,
+        help="Task prompt for cursor-agent variants (what the next agent should do)",
+    )
+    parser.add_argument(
+        "--out",
+        default=None,
+        help="Output dir (default: eval/.runs/density-<skill>-<id>/)",
+    )
+    parser.add_argument(
+        "--no-score-text",
+        action="store_true",
+        help="Skip CLM skill-text scoring (plan + run.sh only)",
+    )
+    parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Run cursor-agent --yolo --print for selected variants (default: as_is, atoms_only)",
+    )
+    parser.add_argument(
+        "--execute-variants",
+        default=None,
+        help="Comma-separated variant names to execute (requires --execute)",
+    )
+    parser.add_argument(
+        "--agent-bin",
+        default="cursor-agent",
+        help="Agent binary (default: cursor-agent)",
+    )
+    args = parser.parse_args(argv)
+    if args.skill not in skills:
+        # soft warning — density probe only needs skills/<name>/SKILL.md
+        print(
+            f"note: {args.skill!r} not in eval task registry {skills}; "
+            "continuing with skills/<name>/SKILL.md",
+            file=sys.stderr,
+        )
+
+    out = Path(args.out) if args.out else None
+    if out is not None and not out.is_absolute():
+        out = Path.cwd() / out
+    execute_variants = (
+        [v.strip() for v in args.execute_variants.split(",") if v.strip()]
+        if args.execute_variants
+        else None
+    )
+
+    try:
+        if args.no_score_text:
+            result = prepare_density_probe(
+                skill_name=str(args.skill),
+                user_task=str(args.prompt),
+                out_dir=out,
+                score_text=False,
+                execute=bool(args.execute),
+                execute_variants=execute_variants,
+                agent_bin=str(args.agent_bin),
+            )
+        else:
+            with EvalRuntime() as runtime:
+                client = _client(runtime)
+                result = prepare_density_probe(
+                    skill_name=str(args.skill),
+                    user_task=str(args.prompt),
+                    out_dir=out,
+                    client=client,
+                    score_text=True,
+                    execute=bool(args.execute),
+                    execute_variants=execute_variants,
+                    agent_bin=str(args.agent_bin),
+                )
+    except (ValueError, RuntimeError, TimeoutError, OSError, FileNotFoundError) as e:
+        print(f"FAIL: density-probe ({e})", file=sys.stderr)
+        return 1
+
+    scores = result.text_scores
+    score_bit = ""
+    if scores is not None:
+        score_bit = (
+            f" density={scores.skill_density:.3f} ({scores.skill_density_label}) "
+            f"action_pointing={scores.action_pointing:.3f} "
+            f"slop_risk={scores.slop_risk:.3f}"
+        )
+    print(
+        f"PASS: density-probe skill={result.skill} atoms={result.atom_count} "
+        f"variants={len(result.variants)} out={result.out_dir}{score_bit}"
+    )
+    print(f"  run: {result.run_script}")
+    print(
+        "  read: plan.json + atoms.json; compare logs/ after "
+        "`bash run.sh` or --execute"
+    )
+    if result.executed:
+        print(f"  executed: {', '.join(result.executed)}")
+    return 0
+
+
 def main() -> None:
     argv = sys.argv[1:]
     usage = (
         "usage: uv run eval run | uv run eval commit-msg <message|-> | "
-        "uv run eval score-sessions [options] | uv run eval next-stage [options]\n"
+        "uv run eval score-sessions [options] | uv run eval next-stage [options] | "
+        "uv run eval density-probe [options]\n"
         "  run             hard smoke (invoice → billing)\n"
         "  commit-msg      hard gate: reject slop / weak commit messages (exit 1 on FAIL)\n"
         "  score-sessions  Pi sessions → evidence/evaluations "
         "(--sessions-dir or WIKISKILL_SESSIONS_DIR)\n"
-        "  next-stage      aggregate scored runs → next skill-stage evaluation brief"
+        "  next-stage      aggregate scored runs → next skill-stage evaluation brief\n"
+        "  density-probe   skill density vs slop + cursor-agent --yolo line ablation"
     )
     if not argv or argv[0] in {"-h", "--help"}:
         print(usage)
@@ -297,6 +411,9 @@ def main() -> None:
 
     if cmd == "next-stage":
         raise SystemExit(cmd_next_stage(argv[1:]))
+
+    if cmd == "density-probe":
+        raise SystemExit(cmd_density_probe(argv[1:]))
 
     print(f"unknown command: {cmd!r}\n{usage}", file=sys.stderr)
     raise SystemExit(2)

@@ -18,6 +18,7 @@ class RunSignalRow(StrictModel):
     run_id: str
     outcome: str | None = None
     skill_helped: float | None = None
+    skill_density: float | None = None
     evidence_quality: float | None = None
     creates: int = 0
     lists: int = 0
@@ -57,7 +58,9 @@ class NextStageBrief(StrictModel):
 
 _KV_RE = re.compile(r"([a-z0-9_]+)=([^;]+)")
 
-_GENERIC_SIGNAL_HEADER = "| run | outcome | helped | evid |\n| --- | --- | ---: | ---: |"
+_GENERIC_SIGNAL_HEADER = (
+    "| run | outcome | helped | density | evid |\n| --- | --- | ---: | ---: | ---: |"
+)
 
 
 def parse_outcome_signals(observed_outcome: str) -> dict[str, str]:
@@ -94,6 +97,7 @@ def load_run_rows(runs_dir: Path) -> list[RunSignalRow]:
         signals = parse_outcome_signals(str(evidence.get("observed_outcome", "")))
         outcome = None
         helped = None
+        density = None
         evid = None
         eval_path = eval_dir / path.name
         if eval_path.is_file():
@@ -101,8 +105,10 @@ def load_run_rows(runs_dir: Path) -> list[RunSignalRow]:
             scores = record.get("scores") or {}
             outcome = (scores.get("outcome") or {}).get("choice")
             helped_raw = (scores.get("skill_helped") or {}).get("noul")
+            density_raw = (scores.get("skill_density") or {}).get("score")
             evid_raw = (scores.get("evidence_quality") or {}).get("score")
             helped = float(helped_raw) if helped_raw is not None else None
+            density = float(density_raw) if density_raw is not None else None
             evid = float(evid_raw) if evid_raw is not None else None
         sections_raw = signals.get("spec_sections", "0/6")
         hit, total = 0, 6
@@ -119,6 +125,7 @@ def load_run_rows(runs_dir: Path) -> list[RunSignalRow]:
                 run_id=str(evidence.get("run_id", path.stem)),
                 outcome=str(outcome) if outcome else None,
                 skill_helped=helped,
+                skill_density=density,
                 evidence_quality=evid,
                 creates=_int(signals.get("creates")),
                 lists=_int(signals.get("lists")),
@@ -157,13 +164,15 @@ def add_clm_gaps(gaps: dict[str, int], rows: list[RunSignalRow]) -> None:
 
 
 def row_markdown_clm_cells(row: RunSignalRow) -> list[str]:
-    """Shared leading cells: run id, outcome, helped, evidence."""
+    """Shared leading cells: run id, outcome, helped, density, evidence."""
     helped = f"{row.skill_helped:.3f}" if row.skill_helped is not None else "—"
+    density = f"{row.skill_density:.2f}" if row.skill_density is not None else "—"
     evid = f"{row.evidence_quality:.2f}" if row.evidence_quality is not None else "—"
     return [
         f"`{row.run_id[:8]}`",
         row.outcome or "—",
         helped,
+        density,
         evid,
     ]
 

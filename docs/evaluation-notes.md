@@ -10,7 +10,9 @@ The [model card](https://huggingface.co/Contrastive-LM/CLM-v0.1-8B) describes ca
 
 Evaluate evidence from a run: task, relevant skill version, actions/tool results, and observed outcome. Rating skill text alone would measure a different thing from whether using it helped complete a task.
 
-Start with a fixed rubric and fixed candidate labels such as `succeeded`, `partially succeeded`, `failed`, and `insufficient evidence`. Treat these as experimental judgments to check against human labels and objective task checks. A successful run alone does not prove the skill caused success; compare old/new versions or a no-skill baseline on the same tasks when assessing improvement.
+Start with a fixed rubric and fixed candidate labels such as `succeeded`, `partially succeeded`, `failed`, and `insufficient evidence`, plus **`skill_density`** (under-specified → dense/clear sweet spot → padded slop; high is not better). Treat these as experimental judgments to check against human labels and objective task checks. A successful run alone does not prove the skill caused success; compare old/new versions or a no-skill baseline on the same tasks when assessing improvement.
+
+To find which skill lines actually point an agent versus which disturb it, use `uv run eval density-probe` (CLM text score + `cursor-agent --yolo` line ablation). See `eval/README.md`.
 
 Keep storage and orchestration separate from the model process. The first implementation lives in Python under `eval/`: typed `CLMClient` usage, a fixed skill-run rubric, and (on Apple Silicon) an MLX Qwen3-8B last-token embeddings server in place of vLLM. Preserve each evaluation's run ID, exact skill versions, evaluator model/checkpoint, rubric version, full candidate set, exact input or its stored reference, preprocessing/truncation settings, raw returned scores, and human/task-check outcomes. Do not interpret a relative candidate probability as a calibrated probability that a skill is good.
 
