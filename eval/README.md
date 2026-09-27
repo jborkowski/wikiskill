@@ -23,6 +23,17 @@ uv run eval commit-msg "feat(eval): add CLM commit-msg density check"
 | `eval commit-msg` | **Hard gate:** CLM rejects slop / weak messages (`PASS`/`FAIL`, exit 1 on fail; fails closed if CLM down) |
 | `eval score-sessions` | Pi session JSONL → `RunEvidence` / `EvaluationRecord` under `--out` (default `eval/.runs/`) |
 | `eval next-stage` | Aggregate scored runs → next skill-stage evaluation brief (markdown + JSON) |
+| `bootstrap-skill` | Create `skills/<name>/` + eval task module; register for `--skill` choices |
+
+### Register a skill for the eval bench
+
+Skill tasks live under `eval/src/wikiskill_eval/tasks/`. Any module that exports `SKILL_NAME`, `SKILL_VERSION`, and `evidence_from_sessions` is **auto-discovered** — no hand-editing of CLI `choices` or `score_sessions` switch statements.
+
+```bash
+uv run bootstrap-skill my-skill --description "…" --group "Other"
+```
+
+Optional on the task module: `build_next_stage_brief`, `SIGNAL_TABLE_HEADER`, `render_signal_row` for a custom next-stage brief (otherwise a generic CLM-only brief is used).
 
 Both `run` / `commit-msg` start MLX emb + `clm-serve` as subprocesses, then tear down. `score-sessions` does the same unless `--evidence-only`. `next-stage` is offline over existing run dirs.
 
@@ -135,8 +146,10 @@ Quantized MLX ≠ CUDA fp16; treat scores as experimental.
 | `pipeline` | `Evaluator` — grow the full pipeline here |
 | `ingest.pi` | Pi agent session JSONL loader |
 | `excerpt` | Build actions/outcome excerpts for CLM |
+| `tasks.registry` | Auto-discover skill task modules (`SKILL_NAME` + evidence builders) |
 | `tasks.issue_tracker` | In-scope filter + `RunEvidence` for issue-tracker |
 | `tasks.to_spec` | In-scope filter + `RunEvidence` for to-spec |
+| `bootstrap` | `bootstrap-skill` CLI — pack files + eval task scaffolding |
 | `score_sessions` | Batch score sessions → gitignored `.runs/` |
 | `next_stage` | Aggregate scored runs → next skill-stage brief |
 | `mlx_emb.server` | FastAPI embeddings app for Mac |

@@ -10,6 +10,7 @@ from wikiskill_eval.tasks.common import bind_evidence_builders
 
 if TYPE_CHECKING:
     from wikiskill_eval.ingest.pi import PiSession
+    from wikiskill_eval.next_stage import NextStageBrief, RunSignalRow
 
 SKILL_NAME = "to-spec"
 SKILL_VERSION = "0.4.0"
@@ -131,3 +132,84 @@ skill_ref, to_run_evidence, evidence_from_sessions = bind_evidence_builders(
     observed_outcome=build_to_spec_outcome,
     enrich_actions=_enrich_spec_actions,
 )
+
+SIGNAL_TABLE_HEADER = (
+    "| run | outcome | helped | evid | sections | interviewed | seams | "
+    "issue_tracker | creates | ready_label |\n"
+    "| --- | --- | ---: | ---: | ---: | --- | --- | --- | ---: | --- |"
+)
+
+
+def render_signal_row(row: RunSignalRow) -> str:
+    from wikiskill_eval.next_stage import row_markdown_clm_cells
+
+    cells = [
+        *row_markdown_clm_cells(row),
+        f"{row.spec_sections_hit}/{row.spec_sections_total}",
+        str(row.interviewed).lower(),
+        str(row.seams_checked).lower(),
+        str(row.used_issue_tracker).lower(),
+        str(row.published_creates),
+        str(row.ready_for_agent_label).lower(),
+    ]
+    return "| " + " | ".join(cells) + " |"
+
+
+def build_next_stage_brief(
+    rows: list[RunSignalRow],
+    *,
+    baseline_version: str,
+    recommended_version: str,
+) -> NextStageBrief:
+    from wikiskill_eval.next_stage import NextStageBrief, add_clm_gaps
+
+    gaps: dict[str, int] = {
+        "incomplete_spec_sections": 0,
+        "interviewed_user": 0,
+        "no_seams_check": 0,
+        "publish_without_issue_tracker": 0,
+        "publish_without_ready_label": 0,
+        "clm_failed_or_insufficient": 0,
+        "clm_helped_but_failed": 0,
+    }
+    for row in rows:
+        if row.spec_sections_hit < row.spec_sections_total:
+            gaps["incomplete_spec_sections"] += 1
+        if row.interviewed:
+            gaps["interviewed_user"] += 1
+        if not row.seams_checked:
+            gaps["no_seams_check"] += 1
+        if row.published_creates > 0 and not row.used_issue_tracker:
+            gaps["publish_without_issue_tracker"] += 1
+        if row.published_creates > 0 and not row.ready_for_agent_label:
+            gaps["publish_without_ready_label"] += 1
+    add_clm_gaps(gaps, rows)
+
+    priorities = [
+        "Mandate full template coverage before publish (all six core sections present).",
+        "Keep no-interview rule explicit; if context is insufficient, say what is missing "
+        "in Further Notes instead of grilling.",
+        "Require a short seams proposal + user confirmation checkpoint before drafting "
+        "Implementation/Testing Decisions.",
+        "Always load/follow sibling issue-tracker for publish (authz, related-issue gate, "
+        "ready-for-agent); install from jborkowski/wikiskill if missing.",
+        "When publishing, include ready-for-agent and name related-issue candidates in "
+        "the issue body per issue-tracker hard publish gate.",
+    ]
+    acceptance = [
+        f"Fresh corpus with to-spec@{recommended_version}: spec_sections == 6/6 on "
+        "every successful publish run.",
+        "interviewed=false on >= 90% of in-scope runs.",
+        "seams_checked=true before publish on every create run.",
+        "used_issue_tracker=true whenever published_creates > 0.",
+        f"CLM succeeded|partially_succeeded share rises vs {baseline_version} on matched tasks.",
+    ]
+    return NextStageBrief(
+        skill=SKILL_NAME,
+        baseline_version=baseline_version,
+        runs_analyzed=len(rows),
+        gap_counts=gaps,
+        recommended_version=recommended_version,
+        priorities=priorities,
+        acceptance_checks=acceptance,
+    )

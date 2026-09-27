@@ -63,12 +63,12 @@ description: What it does and when to use it
 ### Add a skill
 
 ```bash
-cd skills
-npx skills init my-skill
-# edit skills/my-skill/SKILL.md (name must match directory)
-cd ..
+uv run bootstrap-skill my-skill
+# edit skills/my-skill/SKILL.md + eval task TODOs
 npx skills add . --list
 ```
+
+`bootstrap-skill` creates the pack directory, an eval task module (auto-registered for `score-sessions` / `next-stage`), and updates `skills.sh.json` / the skills README table.
 
 See the [Agent Skills specification](https://agentskills.io/specification) for frontmatter rules and optional fields.
 

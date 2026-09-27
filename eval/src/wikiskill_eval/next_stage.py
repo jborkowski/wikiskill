@@ -7,6 +7,7 @@ import json
 import re
 from typing import TYPE_CHECKING
 
+from wikiskill_eval.tasks.registry import get_skill
 from wikiskill_eval.types import StrictModel
 
 if TYPE_CHECKING:
@@ -47,6 +48,8 @@ class NextStageBrief(StrictModel):
 
 
 _KV_RE = re.compile(r"([a-z0-9_]+)=([^;]+)")
+
+_GENERIC_SIGNAL_HEADER = "| run | outcome | helped | evid |\n| --- | --- | ---: | ---: |"
 
 
 def parse_outcome_signals(observed_outcome: str) -> dict[str, str]:
@@ -124,7 +127,7 @@ def load_run_rows(runs_dir: Path) -> list[RunSignalRow]:
     return rows
 
 
-def _add_clm_gaps(gaps: dict[str, int], rows: list[RunSignalRow]) -> None:
+def add_clm_gaps(gaps: dict[str, int], rows: list[RunSignalRow]) -> None:
     """Shared CLM outcome tallies used by every skill brief."""
     for row in rows:
         if row.outcome in {"failed", "insufficient_evidence"}:
@@ -133,7 +136,7 @@ def _add_clm_gaps(gaps: dict[str, int], rows: list[RunSignalRow]) -> None:
             gaps["clm_helped_but_failed"] += 1
 
 
-def _row_markdown_clm_cells(row: RunSignalRow) -> list[str]:
+def row_markdown_clm_cells(row: RunSignalRow) -> list[str]:
     """Shared leading cells: run id, outcome, helped, evidence."""
     helped = f"{row.skill_helped:.3f}" if row.skill_helped is not None else "—"
     evid = f"{row.evidence_quality:.2f}" if row.evidence_quality is not None else "—"
@@ -145,121 +148,43 @@ def _row_markdown_clm_cells(row: RunSignalRow) -> list[str]:
     ]
 
 
-def _issue_tracker_brief(
+def _generic_brief(
     rows: list[RunSignalRow],
     *,
+    skill: str,
     baseline_version: str,
     recommended_version: str,
 ) -> NextStageBrief:
     gaps: dict[str, int] = {
-        "zero_search": 0,
-        "create_without_related_gate": 0,
-        "create_without_remote_check": 0,
-        "create_without_label_signal": 0,
-        "multi_create_without_deps": 0,
         "clm_failed_or_insufficient": 0,
         "clm_helped_but_failed": 0,
     }
-    for row in rows:
-        if row.searches == 0:
-            gaps["zero_search"] += 1
-        if row.creates > 0 and row.related_gate_before_create == "no":
-            gaps["create_without_related_gate"] += 1
-        if row.creates > 0 and row.remote_checks == 0:
-            gaps["create_without_remote_check"] += 1
-        if row.creates > 0 and row.labels == 0:
-            gaps["create_without_label_signal"] += 1
-        if row.creates > 1 and row.deps == 0:
-            gaps["multi_create_without_deps"] += 1
-    _add_clm_gaps(gaps, rows)
-
-    priorities = [
-        "Working-on-issue related discovery: when already on #N, search/list for "
-        "blockers, duplicates, and parallel work before editing or spawning children.",
-        "Hard gate before publish: refuse gh issue create until related_gate=yes "
-        "(list and/or search) and candidates are named in the draft body.",
-        "Remote confirmation: require git remote -v (or equivalent) before any write.",
-        "Triage label checklist: map every create/edit to triage-labels.md roles and "
-        "record the applied label in the run summary.",
-        "Dependency pairing: when creating 2+ related tickets, set blocked_by edges "
-        "(or explicit Blocked by lines) in the same operation.",
-    ]
-    acceptance = [
-        f"On a fresh agent corpus with issue-tracker@{recommended_version} injected, "
-        "searches+lists > 0 on every create run.",
-        "related_gate_before_create=yes for 100% of create runs.",
-        "remote_checks >= 1 on every write run.",
-        "CLM outcome succeeded|partially_succeeded share rises vs "
-        f"{baseline_version} baseline on matched tasks.",
-        "Human spot-check: drafts name candidate related issues before publish.",
-    ]
+    add_clm_gaps(gaps, rows)
     return NextStageBrief(
-        skill="issue-tracker",
+        skill=skill,
         baseline_version=baseline_version,
         runs_analyzed=len(rows),
         gap_counts=gaps,
         recommended_version=recommended_version,
-        priorities=priorities,
-        acceptance_checks=acceptance,
+        priorities=[
+            f"Define skill-specific behavioral signals in "
+            f"`eval/src/wikiskill_eval/tasks/` for `{skill}`.",
+            "Replace this generic CLM-only brief with gap counts tied to the skill procedure.",
+            f"Re-score a fresh corpus with `{skill}@{recommended_version}` injected and "
+            "compare CLM outcome share vs baseline.",
+        ],
+        acceptance_checks=[
+            f"Task module for `{skill}` exposes custom `build_next_stage_brief` "
+            "(not the generic stub).",
+            "CLM outcome succeeded|partially_succeeded share rises vs "
+            f"{baseline_version} on matched tasks.",
+            "Human spot-check: sample failed/insufficient runs against the skill text.",
+        ],
     )
 
 
-def _to_spec_brief(
-    rows: list[RunSignalRow],
-    *,
-    baseline_version: str,
-    recommended_version: str,
-) -> NextStageBrief:
-    gaps: dict[str, int] = {
-        "incomplete_spec_sections": 0,
-        "interviewed_user": 0,
-        "no_seams_check": 0,
-        "publish_without_issue_tracker": 0,
-        "publish_without_ready_label": 0,
-        "clm_failed_or_insufficient": 0,
-        "clm_helped_but_failed": 0,
-    }
-    for row in rows:
-        if row.spec_sections_hit < row.spec_sections_total:
-            gaps["incomplete_spec_sections"] += 1
-        if row.interviewed:
-            gaps["interviewed_user"] += 1
-        if not row.seams_checked:
-            gaps["no_seams_check"] += 1
-        if row.published_creates > 0 and not row.used_issue_tracker:
-            gaps["publish_without_issue_tracker"] += 1
-        if row.published_creates > 0 and not row.ready_for_agent_label:
-            gaps["publish_without_ready_label"] += 1
-    _add_clm_gaps(gaps, rows)
-
-    priorities = [
-        "Mandate full template coverage before publish (all six core sections present).",
-        "Keep no-interview rule explicit; if context is insufficient, say what is missing "
-        "in Further Notes instead of grilling.",
-        "Require a short seams proposal + user confirmation checkpoint before drafting "
-        "Implementation/Testing Decisions.",
-        "Always load/follow sibling issue-tracker for publish (authz, related-issue gate, "
-        "ready-for-agent); install from jborkowski/wikiskill if missing.",
-        "When publishing, include ready-for-agent and name related-issue candidates in "
-        "the issue body per issue-tracker hard publish gate.",
-    ]
-    acceptance = [
-        f"Fresh corpus with to-spec@{recommended_version}: spec_sections == 6/6 on "
-        "every successful publish run.",
-        "interviewed=false on >= 90% of in-scope runs.",
-        "seams_checked=true before publish on every create run.",
-        "used_issue_tracker=true whenever published_creates > 0.",
-        f"CLM succeeded|partially_succeeded share rises vs {baseline_version} on matched tasks.",
-    ]
-    return NextStageBrief(
-        skill="to-spec",
-        baseline_version=baseline_version,
-        runs_analyzed=len(rows),
-        gap_counts=gaps,
-        recommended_version=recommended_version,
-        priorities=priorities,
-        acceptance_checks=acceptance,
-    )
+def _generic_signal_row(row: RunSignalRow) -> str:
+    return "| " + " | ".join(row_markdown_clm_cells(row)) + " |"
 
 
 def build_next_stage_brief(
@@ -269,47 +194,19 @@ def build_next_stage_brief(
     baseline_version: str = "0.2.0",
     recommended_version: str = "0.3.0",
 ) -> NextStageBrief:
-    if skill == "to-spec":
-        return _to_spec_brief(
+    task = get_skill(skill)
+    if task.build_next_stage_brief is not None:
+        return task.build_next_stage_brief(
             rows,
             baseline_version=baseline_version,
             recommended_version=recommended_version,
         )
-    if skill == "issue-tracker":
-        return _issue_tracker_brief(
-            rows,
-            baseline_version=baseline_version,
-            recommended_version=recommended_version,
-        )
-    raise ValueError(f"unsupported skill for next-stage: {skill!r}")
-
-
-def _row_markdown_issue_tracker(row: RunSignalRow) -> str:
-    cells = [
-        *_row_markdown_clm_cells(row),
-        str(row.creates),
-        str(row.lists),
-        str(row.views),
-        str(row.searches),
-        str(row.labels),
-        str(row.deps),
-        str(row.remote_checks),
-        row.related_gate_before_create,
-    ]
-    return "| " + " | ".join(cells) + " |"
-
-
-def _row_markdown_to_spec(row: RunSignalRow) -> str:
-    cells = [
-        *_row_markdown_clm_cells(row),
-        f"{row.spec_sections_hit}/{row.spec_sections_total}",
-        str(row.interviewed).lower(),
-        str(row.seams_checked).lower(),
-        str(row.used_issue_tracker).lower(),
-        str(row.published_creates),
-        str(row.ready_for_agent_label).lower(),
-    ]
-    return "| " + " | ".join(cells) + " |"
+    return _generic_brief(
+        rows,
+        skill=skill,
+        baseline_version=baseline_version,
+        recommended_version=recommended_version,
+    )
 
 
 def render_next_stage_markdown(brief: NextStageBrief, rows: list[RunSignalRow]) -> str:
@@ -328,24 +225,12 @@ def render_next_stage_markdown(brief: NextStageBrief, rows: list[RunSignalRow]) 
     ]
     lines.extend(f"| `{key}` | {value} |" for key, value in brief.gap_counts.items())
     lines.extend(["", "## Per-run signals", ""])
-    if brief.skill == "to-spec":
-        lines.extend(
-            [
-                "| run | outcome | helped | evid | sections | interviewed | seams | "
-                "issue_tracker | creates | ready_label |",
-                "| --- | --- | ---: | ---: | ---: | --- | --- | --- | ---: | --- |",
-            ]
-        )
-        lines.extend(_row_markdown_to_spec(row) for row in rows)
-    else:
-        lines.extend(
-            [
-                "| run | outcome | helped | evid | creates | lists | views | searches | "
-                "labels | deps | remote | related_gate |",
-                "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
-            ]
-        )
-        lines.extend(_row_markdown_issue_tracker(row) for row in rows)
+
+    task = get_skill(brief.skill)
+    header = task.signal_table_header or _GENERIC_SIGNAL_HEADER
+    render = task.render_signal_row or _generic_signal_row
+    lines.extend(header.splitlines())
+    lines.extend(render(row) for row in rows)
     lines.extend(["", "## Priorities for next skill stage", ""])
     lines.extend(f"{i}. {item}" for i, item in enumerate(brief.priorities, 1))
     lines.extend(["", "## Acceptance checks for the next stage", ""])
@@ -373,6 +258,8 @@ def write_next_stage_report(
                     json.loads(manifest_path.read_text(encoding="utf-8")).get("skill") or ""
                 )
         resolved = resolved or "issue-tracker"
+    # Validate against registry (raises ValueError if unknown)
+    _ = get_skill(resolved)
     brief = build_next_stage_brief(
         rows,
         skill=resolved,

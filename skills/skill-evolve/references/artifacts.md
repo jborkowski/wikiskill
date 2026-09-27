@@ -67,4 +67,4 @@ uv run eval next-stage --runs-dir eval/.runs/<label> \
   --baseline-version <b> --recommended-version <n>
 ```
 
-Supported `--skill` values are whatever `wikiskill_eval` registers (see `eval/README.md` / `score_sessions.py`). Extending the loop to a new skill usually means adding `eval/src/wikiskill_eval/tasks/<skill>.py` first.
+Supported `--skill` values come from `wikiskill_eval.tasks.registry` (auto-discovers task modules). Bootstrap a new skill + eval wiring with `uv run bootstrap-skill <name>` (see `eval/README.md`).

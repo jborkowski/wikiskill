@@ -19,6 +19,7 @@ from wikiskill_eval.next_stage import write_next_stage_report
 from wikiskill_eval.pipeline import Evaluator
 from wikiskill_eval.runtime import EvalRuntime
 from wikiskill_eval.score_sessions import resolve_sessions_dir, score_sessions
+from wikiskill_eval.tasks.registry import skill_names
 
 
 def verify_invoice_demo(response: object) -> None:
@@ -117,11 +118,12 @@ def cmd_commit_msg(message: str) -> int:
 
 def cmd_score_sessions(argv: list[str]) -> int:
     """Score Pi sessions for a skill (path via flag or WIKISKILL_SESSIONS_DIR)."""
+    skills = skill_names()
     parser = argparse.ArgumentParser(
         prog="eval score-sessions",
         description=(
             "Ingest Pi agent session JSONL and score skill runs with CLM "
-            "(issue-tracker | to-spec). "
+            f"({(' | '.join(skills)) or 'no skills registered'}). "
             "Pass --sessions-dir or set WIKISKILL_SESSIONS_DIR "
             "(e.g. $HOME/.pi/agent/sessions/<project-key>/). "
             "Do not commit raw transcripts."
@@ -135,7 +137,7 @@ def cmd_score_sessions(argv: list[str]) -> int:
     parser.add_argument(
         "--skill",
         default="issue-tracker",
-        choices=["issue-tracker", "to-spec"],
+        choices=skills,
         help="Skill to evaluate (default: issue-tracker)",
     )
     parser.add_argument(
@@ -208,6 +210,7 @@ def cmd_score_sessions(argv: list[str]) -> int:
 
 def cmd_next_stage(argv: list[str]) -> int:
     """Build next-stage evaluation markdown/JSON from a score-sessions out dir."""
+    skills = skill_names()
     parser = argparse.ArgumentParser(
         prog="eval next-stage",
         description=(
@@ -223,7 +226,7 @@ def cmd_next_stage(argv: list[str]) -> int:
     parser.add_argument(
         "--skill",
         default=None,
-        choices=["issue-tracker", "to-spec"],
+        choices=skills,
         help="Skill brief to generate (default: read from runs-dir/manifest.json)",
     )
     parser.add_argument(

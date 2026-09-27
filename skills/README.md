@@ -51,21 +51,31 @@ npx skills add jborkowski/wikiskill --skill '*'
 
 ## Create a skill
 
-From this directory (so the frontmatter `name` matches the folder):
+From the **repo root**, bootstrap pack files + eval-bench registration in one shot:
 
 ```bash
-cd skills
-npx skills init my-skill
+uv run bootstrap-skill my-skill
+# optional:
+uv run bootstrap-skill my-skill \
+  --description "What it does and when to use it." \
+  --group "Spec to ship"
 ```
 
-Then verify discovery from the repo root:
+This creates:
+
+- `skills/<name>/SKILL.md` + `agents/openai.yaml`
+- `eval/src/wikiskill_eval/tasks/<name_with_underscores>.py` (auto-registered)
+- updates `skills.sh.json` grouping and this README’s pack table
+
+Then edit the TODOs in `SKILL.md` / the task module, and verify discovery:
 
 ```bash
 npx skills add . --list
 npx skills add . --skill my-skill -l
+uv run eval score-sessions --help   # --skill choices include the new name
 ```
 
-Optional: add root `skills.sh.json` to group skills on the [skills.sh](https://www.skills.sh) repo page once you have more than one skill.
+Alternatively: `cd skills && npx skills init my-skill`, then add the eval task module yourself (or re-run `bootstrap-skill --force`).
 
 Skills here are what users install with:
 

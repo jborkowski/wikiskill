@@ -29,6 +29,7 @@ dev = [
 
 [project.scripts]
 eval = "wikiskill_eval.cli:main"
+bootstrap-skill = "wikiskill_eval.bootstrap:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -84,6 +85,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "src/wikiskill_eval/mlx_emb/server.py" = ["T20"]
 "src/wikiskill_eval/cli.py" = ["T20"]
+"src/wikiskill_eval/bootstrap.py" = ["T20"]
 "src/wikiskill_eval/__main__.py" = ["T20"]
 "src/wikiskill_eval/runtime.py" = ["S603", "S607"]
 

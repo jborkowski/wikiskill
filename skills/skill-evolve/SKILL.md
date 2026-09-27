@@ -50,7 +50,7 @@ Record before scoring:
 3. **Corpus**: sessions dir (env/flag only), harness (Pi / other), date.
 4. **Out dir** under `eval/.runs/` (e.g. `eval/.runs/to-spec-v0.2.0`).
 
-If the skill has no eval task module yet, say so; run evidence collection only for supported skills (`issue-tracker`, `to-spec`, …) or extend `wikiskill_eval.tasks` first.
+If the skill has no eval task module yet, say so and offer `uv run bootstrap-skill <name>` (or add `eval/src/wikiskill_eval/tasks/<stem>.py` that exports `SKILL_NAME` / `SKILL_VERSION` / `evidence_from_sessions`). List registered skills via `uv run eval score-sessions --help`.
 
 ### 2. Score sessions
 
