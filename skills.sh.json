@@ -5,17 +5,32 @@
     {
       "title": "Tracker",
       "description": "GitHub Issues read/write for any repo.",
-      "skills": ["issue-tracker"]
+      "skills": [
+        "issue-tracker"
+      ]
     },
     {
       "title": "Spec to ship",
       "description": "Synthesize a spec, break into tickets, implement.",
-      "skills": ["to-spec", "to-tickets", "implement"]
+      "skills": [
+        "to-spec",
+        "to-tickets",
+        "implement"
+      ]
     },
     {
       "title": "Evolve",
       "description": "Evaluate runs, distill lessons, patch and dogfood skills.",
-      "skills": ["skill-evolve"]
+      "skills": [
+        "skill-evolve"
+      ]
+    },
+    {
+      "title": "Workflow",
+      "description": "Cross-cutting agent continuity helpers.",
+      "skills": [
+        "handoff"
+      ]
     }
   ]
 }

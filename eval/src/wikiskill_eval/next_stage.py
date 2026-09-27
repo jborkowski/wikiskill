@@ -35,6 +35,14 @@ class RunSignalRow(StrictModel):
     used_issue_tracker: bool = False
     published_creates: int = 0
     ready_for_agent_label: bool = False
+    # handoff extras (0 / false when absent)
+    handoff_sections_hit: int = 0
+    handoff_sections_total: int = 6
+    wrote_temp: bool = False
+    wrote_workspace: bool = False
+    has_suggested_skills: bool = False
+    has_resume_cue: bool = False
+    continued_after_handoff: bool = False
 
 
 class NextStageBrief(StrictModel):
@@ -101,6 +109,11 @@ def load_run_rows(runs_dir: Path) -> list[RunSignalRow]:
         if "/" in sections_raw:
             left, right = sections_raw.split("/", 1)
             hit, total = _int(left), _int(right, 6)
+        handoff_raw = signals.get("handoff_sections", "0/6")
+        h_hit, h_total = 0, 6
+        if "/" in handoff_raw:
+            left, right = handoff_raw.split("/", 1)
+            h_hit, h_total = _int(left), _int(right, 6)
         rows.append(
             RunSignalRow(
                 run_id=str(evidence.get("run_id", path.stem)),
@@ -122,6 +135,13 @@ def load_run_rows(runs_dir: Path) -> list[RunSignalRow]:
                 used_issue_tracker=_bool(signals.get("used_issue_tracker")),
                 published_creates=_int(signals.get("published_creates")),
                 ready_for_agent_label=_bool(signals.get("ready_for_agent_label")),
+                handoff_sections_hit=h_hit,
+                handoff_sections_total=h_total,
+                wrote_temp=_bool(signals.get("wrote_temp")),
+                wrote_workspace=_bool(signals.get("wrote_workspace")),
+                has_suggested_skills=_bool(signals.get("has_suggested_skills")),
+                has_resume_cue=_bool(signals.get("has_resume_cue")),
+                continued_after_handoff=_bool(signals.get("continued_after_handoff")),
             )
         )
     return rows

@@ -21,6 +21,7 @@ These skills are written to be **generic**: they work in any GitHub-backed clone
 | `to-spec` | Synthesize a conversation into a spec and publish via `issue-tracker` |
 | `to-tickets` | Break a plan/spec into tracer-bullet tickets with blockers; publish via `issue-tracker` (scratch files only if asked) |
 | `implement` | Implement one GH ticket/slice at a time (tests, review, gates, commit); no local ticket mirrors |
+| `handoff` | Compact the conversation into an OS-temp handoff doc for another agent |
 | `skill-evolve` | Score session runs, write evaluation retrospectives, distill lessons, patch skills, dogfood |
 
 ## Adapt to your repo (required for real use)
