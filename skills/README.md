@@ -22,6 +22,8 @@ These skills are written to be **generic**: they work in any GitHub-backed clone
 | `to-tickets` | Break a plan/spec into tracer-bullet tickets with blockers; publish via `issue-tracker` (scratch files only if asked) |
 | `implement` | Implement one GH ticket/slice at a time (tests, review, gates, commit); no local ticket mirrors |
 | `handoff` | Compact the conversation into an OS-temp handoff doc for another agent |
+| `wayfinder` | Plan huge work as a shared map of decision tickets; resolve until the way is clear |
+| `research` | Primary-source research via background agent; write cited findings to Markdown |
 | `skill-evolve` | Score session runs, write evaluation retrospectives, distill lessons, patch skills, dogfood |
 
 ## Adapt to your repo (required for real use)
@@ -32,7 +34,7 @@ After `npx skills add jborkowski/wikiskill --skill issue-tracker` (project or gl
 2. Optionally flip **PRs as a request surface** in `issue-tracker-github.md`.
 3. Install the other skills from the same pack (`to-spec`, `to-tickets`, `implement`, `skill-evolve`) so they share the same `issue-tracker` copy.
 
-Typical flow: **`to-spec`** → **`to-tickets`** → **`implement`** (frontier tickets), with **`issue-tracker`** for all publish/fetch. Use **`skill-evolve`** to evaluate and improve any of those skills from agent transcripts.
+Typical flow: **`wayfinder`** (when the path is foggy) → **`to-spec`** → **`to-tickets`** → **`implement`** (frontier tickets), with **`issue-tracker`** for GitHub publish/fetch. Use **`skill-evolve`** to evaluate and improve any of those skills from agent transcripts.
 
 Install the whole pack:
 

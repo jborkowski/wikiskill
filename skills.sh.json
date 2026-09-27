@@ -11,8 +11,9 @@
     },
     {
       "title": "Spec to ship",
-      "description": "Synthesize a spec, break into tickets, implement.",
+      "description": "Chart the way, synthesize a spec, break into tickets, implement.",
       "skills": [
+        "wayfinder",
         "to-spec",
         "to-tickets",
         "implement"
@@ -29,7 +30,8 @@
       "title": "Workflow",
       "description": "Cross-cutting agent continuity helpers.",
       "skills": [
-        "handoff"
+        "handoff",
+        "research"
       ]
     }
   ]

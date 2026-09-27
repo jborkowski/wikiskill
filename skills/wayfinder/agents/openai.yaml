@@ -1,0 +1,5 @@
+interface:
+  display_name: "Wayfinder"
+  short_description: "Map huge work as decision tickets; resolve until the path is clear"
+policy:
+  allow_implicit_invocation: false

@@ -44,6 +44,24 @@ class RunSignalRow(StrictModel):
     has_suggested_skills: bool = False
     has_resume_cue: bool = False
     continued_after_handoff: bool = False
+    # wayfinder extras (0 / false when absent)
+    map_sections_hit: int = 0
+    map_sections_total: int = 5
+    has_map_label: bool = False
+    has_type_label: bool = False
+    claimed_before_work: bool = False
+    resolution_recorded: bool = False
+    one_ticket_per_session: bool = True
+    bare_id_wall: bool = False
+    grilling_and_domain: bool = False
+    plan_not_do: bool = True
+    # research extras (0 / false when absent)
+    background_agent: bool = False
+    used_px: bool = False
+    primary_sources: bool = False
+    markdown_writes: int = 0
+    citations_present: bool = False
+    reported_path: bool = False
 
 
 class NextStageBrief(StrictModel):
@@ -120,6 +138,11 @@ def load_run_rows(runs_dir: Path) -> list[RunSignalRow]:
         if "/" in handoff_raw:
             left, right = handoff_raw.split("/", 1)
             h_hit, h_total = _int(left), _int(right, 6)
+        map_raw = signals.get("map_sections", "0/5")
+        m_hit, m_total = 0, 5
+        if "/" in map_raw:
+            left, right = map_raw.split("/", 1)
+            m_hit, m_total = _int(left), _int(right, 5)
         rows.append(
             RunSignalRow(
                 run_id=str(evidence.get("run_id", path.stem)),
@@ -149,6 +172,22 @@ def load_run_rows(runs_dir: Path) -> list[RunSignalRow]:
                 has_suggested_skills=_bool(signals.get("has_suggested_skills")),
                 has_resume_cue=_bool(signals.get("has_resume_cue")),
                 continued_after_handoff=_bool(signals.get("continued_after_handoff")),
+                map_sections_hit=m_hit,
+                map_sections_total=m_total,
+                has_map_label=_bool(signals.get("has_map_label")),
+                has_type_label=_bool(signals.get("has_type_label")),
+                claimed_before_work=_bool(signals.get("claimed_before_work")),
+                resolution_recorded=_bool(signals.get("resolution_recorded")),
+                one_ticket_per_session=_bool(signals.get("one_ticket_per_session"), True),
+                bare_id_wall=_bool(signals.get("bare_id_wall")),
+                grilling_and_domain=_bool(signals.get("grilling_and_domain")),
+                plan_not_do=_bool(signals.get("plan_not_do"), True),
+                background_agent=_bool(signals.get("background_agent")),
+                used_px=_bool(signals.get("used_px")),
+                primary_sources=_bool(signals.get("primary_sources")),
+                markdown_writes=_int(signals.get("markdown_writes")),
+                citations_present=_bool(signals.get("citations_present")),
+                reported_path=_bool(signals.get("reported_path")),
             )
         )
     return rows

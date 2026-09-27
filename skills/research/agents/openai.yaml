@@ -1,0 +1,5 @@
+interface:
+  display_name: "Research"
+  short_description: "Primary-source research via background agent; write findings to Markdown"
+policy:
+  allow_implicit_invocation: false
