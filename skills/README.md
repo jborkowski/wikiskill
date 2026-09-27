@@ -24,6 +24,8 @@ These skills are written to be **generic**: they work in any GitHub-backed clone
 | `handoff` | Compact the conversation into an OS-temp handoff doc for another agent |
 | `wayfinder` | Plan huge work as a shared map of decision tickets; resolve until the way is clear |
 | `research` | Primary-source research via background agent; write cited findings to Markdown |
+| `grilling` | Relentless design-tree interview until shared understanding |
+| `domain-modeling` | Sharpen glossary and ADRs as the domain model crystallises |
 | `skill-evolve` | Score session runs, write evaluation retrospectives, distill lessons, patch skills, dogfood |
 
 ## Adapt to your repo (required for real use)

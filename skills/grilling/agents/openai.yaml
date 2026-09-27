@@ -1,0 +1,5 @@
+interface:
+  display_name: "Grilling"
+  short_description: "Relentless design-tree interview until shared understanding"
+policy:
+  allow_implicit_invocation: false

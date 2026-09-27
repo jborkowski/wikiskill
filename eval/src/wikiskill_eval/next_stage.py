@@ -62,6 +62,21 @@ class RunSignalRow(StrictModel):
     markdown_writes: int = 0
     citations_present: bool = False
     reported_path: bool = False
+    # grilling extras (0 / false when absent)
+    question_count: int = 0
+    recommendation_count: int = 0
+    frontier_language: bool = False
+    waited_for_answers: bool = False
+    fact_subagent: bool = False
+    acted_before_confirm: bool = False
+    # domain-modeling extras (0 / false when absent)
+    challenged_terms: bool = False
+    edge_scenarios: bool = False
+    code_crosscheck: bool = False
+    context_writes: int = 0
+    adr_writes: int = 0
+    impl_leak_in_context: bool = False
+    adr_bar_mentioned: bool = False
 
 
 class NextStageBrief(StrictModel):
@@ -188,6 +203,19 @@ def load_run_rows(runs_dir: Path) -> list[RunSignalRow]:
                 markdown_writes=_int(signals.get("markdown_writes")),
                 citations_present=_bool(signals.get("citations_present")),
                 reported_path=_bool(signals.get("reported_path")),
+                question_count=_int(signals.get("question_count")),
+                recommendation_count=_int(signals.get("recommendation_count")),
+                frontier_language=_bool(signals.get("frontier_language")),
+                waited_for_answers=_bool(signals.get("waited_for_answers")),
+                fact_subagent=_bool(signals.get("fact_subagent")),
+                acted_before_confirm=_bool(signals.get("acted_before_confirm")),
+                challenged_terms=_bool(signals.get("challenged_terms")),
+                edge_scenarios=_bool(signals.get("edge_scenarios")),
+                code_crosscheck=_bool(signals.get("code_crosscheck")),
+                context_writes=_int(signals.get("context_writes")),
+                adr_writes=_int(signals.get("adr_writes")),
+                impl_leak_in_context=_bool(signals.get("impl_leak_in_context")),
+                adr_bar_mentioned=_bool(signals.get("adr_bar_mentioned")),
             )
         )
     return rows
