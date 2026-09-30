@@ -26,6 +26,7 @@ These skills are written to be **generic**: they work in any GitHub-backed clone
 | `research` | Primary-source research via background agent; write cited findings to Markdown |
 | `grilling` | Relentless design-tree interview until shared understanding |
 | `domain-modeling` | Sharpen glossary and ADRs as the domain model crystallises |
+| `code-review` | Independent Standards and Spec/Behavior review of pinned diffs; evidence-backed findings |
 | `skill-evolve` | Score session runs, write evaluation retrospectives, distill lessons, patch skills, dogfood |
 
 ## Adapt to your repo (required for real use)

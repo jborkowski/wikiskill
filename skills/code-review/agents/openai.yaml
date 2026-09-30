@@ -1,0 +1,5 @@
+interface:
+  display_name: "Code Review"
+  short_description: "Evidence-backed code review with actionable, prioritized findings"
+policy:
+  allow_implicit_invocation: false
