@@ -28,6 +28,7 @@ These skills are written to be **generic**: they work in any GitHub-backed clone
 | `domain-modeling` | Sharpen glossary and ADRs as the domain model crystallises |
 | `code-review` | Independent Standards and Spec/Behavior review of pinned diffs; evidence-backed findings |
 | `skill-evolve` | Score session runs, write evaluation retrospectives, distill lessons, patch skills, dogfood |
+| `add-homebrew-formula` | Add an in-repo Homebrew formula + brew Makefile targets (tap/pack/install); private-repo first: local tarball source, SSH git fallback, `HOMEBREW_NO_INSTALL_FROM_API` team taps |
 
 ## Adapt to your repo (required for real use)
 

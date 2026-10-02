@@ -1,0 +1,5 @@
+interface:
+  display_name: "Add Homebrew Formula"
+  short_description: "In-repo local-tap formula, private-repo first (tarball/SSH git)"
+policy:
+  allow_implicit_invocation: false

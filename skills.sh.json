@@ -21,6 +21,13 @@
       ]
     },
     {
+      "title": "Packaging",
+      "description": "Make a project brew-installable via the in-repo local-tap pattern.",
+      "skills": [
+        "add-homebrew-formula"
+      ]
+    },
+    {
       "title": "Evolve",
       "description": "Evaluate runs, distill lessons, patch and dogfood skills.",
       "skills": [
