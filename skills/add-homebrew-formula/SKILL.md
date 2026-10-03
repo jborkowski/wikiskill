@@ -9,7 +9,7 @@ description: >-
   project brew-installable, or add brew targets.
 disable-model-invocation: true
 metadata:
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Add Homebrew Formula
@@ -71,6 +71,7 @@ After detecting language/service needs, **read only** the relevant files:
 | Python | [references/langs/python.md](references/langs/python.md) |
 | Daemon / `brew services` | [references/service-block.md](references/service-block.md) |
 | **Private repo (default assumption)** | [references/private-repos.md](references/private-repos.md) |
+| Release-tarball sha256 (GitHub tag URL) | [references/release-checksums.md](references/release-checksums.md) |
 | Verify / audit steps | [references/validation.md](references/validation.md) |
 
 If the language has no dedicated ref, do **not** guess a build recipe: take the
